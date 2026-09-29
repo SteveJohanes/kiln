@@ -1,3 +1,4 @@
+
 import { Injectable } from "@nestjs/common";
 import { EventService } from "../event/event.service";
 import { StreamSessionService } from "../stream/stream-session.service";
@@ -9,9 +10,11 @@ export class DashboardService {
     private readonly streamSessionService: StreamSessionService,
   ) {}
 
-  getDashboard() {
+  getDashboard(userId: string) {
     const latestSession =
-      this.streamSessionService.getLatestSession();
+      this.streamSessionService.getLatestSession(
+        userId,
+      );
 
     return {
       session: latestSession ?? null,

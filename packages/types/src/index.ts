@@ -1,4 +1,3 @@
-
 export type Platform =
   | "youtube"
   | "tiktok"
@@ -32,6 +31,7 @@ export type StreamSessionStatus =
 
 export type StreamSession = {
   id: string;
+  userId: string;
   status: StreamSessionStatus;
   platforms: Platform[];
   startedAt?: number;

@@ -1,4 +1,7 @@
-export const API_BASE_URL = "http://localhost:3000";
+import { getAccessToken } from "./auth-storage";
+import type { UserIdentity } from "./auth-types";
+
+export const API_BASE_URL = "http://192.168.1.6:3000";
 
 export type Platform =
   | "youtube"
@@ -33,6 +36,15 @@ export type DashboardData = {
   };
 };
 
+export type LoginResponse = {
+  accessToken: string;
+  user: UserIdentity;
+};
+
+export type CurrentUserResponse = {
+  user: UserIdentity;
+};
+
 async function request<T>(
   url: string,
   options?: RequestInit,
@@ -48,20 +60,80 @@ async function request<T>(
   return response.json();
 }
 
+export async function login(
+  email: string,
+  password: string,
+): Promise<LoginResponse> {
+  const response = await request<LoginResponse>(
+    `${API_BASE_URL}/auth/login`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    },
+  );
+
+  return response;
+}
+
+export async function getCurrentUser(): Promise<CurrentUserResponse> {
+  const accessToken = await getAccessToken();
+
+  if (!accessToken) {
+    throw new Error("User belum login.");
+  }
+
+  return request<CurrentUserResponse>(
+    `${API_BASE_URL}/auth/me`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+}
+
+async function getAuthHeaders(): Promise<
+  Record<string, string>
+> {
+  const accessToken = await getAccessToken();
+
+  if (!accessToken) {
+    throw new Error("User belum login.");
+  }
+
+  return {
+    Authorization: `Bearer ${accessToken}`,
+  };
+}
+
 export async function getDashboard(): Promise<DashboardData> {
+  const headers = await getAuthHeaders();
+
   return request<DashboardData>(
     `${API_BASE_URL}/dashboard`,
+    {
+      headers,
+    },
   );
 }
 
 export async function createSession(
   platforms: Platform[],
 ): Promise<StreamSession> {
+  const headers = await getAuthHeaders();
+
   return request<StreamSession>(
     `${API_BASE_URL}/sessions`,
     {
       method: "POST",
       headers: {
+        ...headers,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -74,10 +146,13 @@ export async function createSession(
 export async function startSession(
   sessionId: string,
 ): Promise<StreamSession> {
+  const headers = await getAuthHeaders();
+
   return request<StreamSession>(
     `${API_BASE_URL}/sessions/${sessionId}/start`,
     {
       method: "POST",
+      headers,
     },
   );
 }
@@ -85,10 +160,13 @@ export async function startSession(
 export async function endSession(
   sessionId: string,
 ): Promise<StreamSession> {
+  const headers = await getAuthHeaders();
+
   return request<StreamSession>(
     `${API_BASE_URL}/sessions/${sessionId}/end`,
     {
       method: "POST",
+      headers,
     },
   );
 }

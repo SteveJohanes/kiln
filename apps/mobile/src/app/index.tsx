@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -8,6 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { router } from "expo-router";
 import {
   createSession,
   endSession,
@@ -22,6 +24,14 @@ import {
   disconnectSocket,
   socket,
 } from "../lib/socket";
+import { useAuth } from "../lib/auth-context";
+
+const AVAILABLE_PLATFORMS: Platform[] = [
+  "youtube",
+  "tiktok",
+  "twitch",
+  "kick",
+];
 
 function getPlatformLabel(platform: string): string {
   switch (platform) {
@@ -60,25 +70,68 @@ function getEventTypeLabel(type: string): string {
 }
 
 function formatEventTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return new Date(timestamp).toLocaleTimeString(
+    "id-ID",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  );
 }
 
 export default function Index() {
-  const [dashboard, setDashboard] = useState<DashboardData | null>(
-    null,
-  );
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [sessionLoading, setSessionLoading] = useState(false);
-  const [socketConnected, setSocketConnected] = useState(
-    socket.connected,
-  );
-  const [error, setError] = useState<string | null>(null);
+  const {
+    user,
+    logout,
+  } = useAuth();
 
-  async function loadDashboard(isRefresh = false) {
+  const [dashboard, setDashboard] =
+    useState<DashboardData | null>(null);
+
+  const [loading, setLoading] = useState(true);
+
+  const [refreshing, setRefreshing] =
+    useState(false);
+
+  const [sessionLoading, setSessionLoading] =
+    useState(false);
+
+  const [loggingOut, setLoggingOut] =
+    useState(false);
+
+  const [socketConnected, setSocketConnected] =
+    useState(socket.connected);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [selectedPlatforms, setSelectedPlatforms] =
+    useState<Platform[]>(["youtube", "tiktok"]);
+
+  function togglePlatform(
+    platform: Platform,
+  ): void {
+    setSelectedPlatforms((currentPlatforms) => {
+      const isSelected =
+        currentPlatforms.includes(platform);
+
+      if (isSelected) {
+        return currentPlatforms.filter(
+          (currentPlatform) =>
+            currentPlatform !== platform,
+        );
+      }
+
+      return [
+        ...currentPlatforms,
+        platform,
+      ];
+    });
+  }
+
+  async function loadDashboard(
+    isRefresh = false,
+  ) {
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -104,20 +157,32 @@ export default function Index() {
   }
 
   async function handleStartStream() {
+    if (selectedPlatforms.length === 0) {
+      Alert.alert(
+        "Platform belum dipilih",
+        "Pilih minimal satu platform sebelum memulai stream.",
+      );
+
+      return;
+    }
+
     try {
       setSessionLoading(true);
       setError(null);
 
       let session = dashboard?.session;
 
-      if (!session || session.status === "ended") {
-        session = await createSession([
-          "youtube",
-          "tiktok",
-        ]);
+      if (
+        !session ||
+        session.status === "ended"
+      ) {
+        session = await createSession(
+          selectedPlatforms,
+        );
       }
 
-      const startedSession = await startSession(session.id);
+      const startedSession =
+        await startSession(session.id);
 
       setDashboard((currentDashboard) => {
         if (!currentDashboard) {
@@ -151,7 +216,8 @@ export default function Index() {
       setSessionLoading(true);
       setError(null);
 
-      const endedSession = await endSession(session.id);
+      const endedSession =
+        await endSession(session.id);
 
       setDashboard((currentDashboard) => {
         if (!currentDashboard) {
@@ -174,6 +240,43 @@ export default function Index() {
     }
   }
 
+  function handleLogout() {
+    Alert.alert(
+      "Keluar",
+      "Apakah kamu yakin ingin keluar dari akun?",
+      [
+        {
+          text: "Batal",
+          style: "cancel",
+        },
+        {
+          text: "Keluar",
+          style: "destructive",
+          onPress: () => {
+            void performLogout();
+          },
+        },
+      ],
+    );
+  }
+
+  async function performLogout() {
+    try {
+      setLoggingOut(true);
+
+      disconnectSocket();
+
+      await logout();
+    } catch (err) {
+      console.error(
+        "Gagal melakukan logout:",
+        err,
+      );
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
   useEffect(() => {
     void loadDashboard();
 
@@ -185,7 +288,9 @@ export default function Index() {
       setSocketConnected(false);
     }
 
-    function handleStreamEvent(event: DashboardEvent) {
+    function handleStreamEvent(
+      event: DashboardEvent,
+    ) {
       setDashboard((currentDashboard) => {
         if (!currentDashboard) {
           return currentDashboard;
@@ -193,7 +298,8 @@ export default function Index() {
 
         const existingEvent =
           currentDashboard.events.recent.some(
-            (existing) => existing.id === event.id,
+            (existing) =>
+              existing.id === event.id,
           );
 
         if (existingEvent) {
@@ -203,7 +309,8 @@ export default function Index() {
         return {
           ...currentDashboard,
           events: {
-            total: currentDashboard.events.total + 1,
+            total:
+              currentDashboard.events.total + 1,
             recent: [
               event,
               ...currentDashboard.events.recent,
@@ -214,15 +321,30 @@ export default function Index() {
     }
 
     socket.on("connect", handleConnect);
-    socket.on("disconnect", handleDisconnect);
-    socket.on("stream:event", handleStreamEvent);
+    socket.on(
+      "disconnect",
+      handleDisconnect,
+    );
+    socket.on(
+      "stream:event",
+      handleStreamEvent,
+    );
 
     connectSocket();
 
     return () => {
-      socket.off("connect", handleConnect);
-      socket.off("disconnect", handleDisconnect);
-      socket.off("stream:event", handleStreamEvent);
+      socket.off(
+        "connect",
+        handleConnect,
+      );
+      socket.off(
+        "disconnect",
+        handleDisconnect,
+      );
+      socket.off(
+        "stream:event",
+        handleStreamEvent,
+      );
 
       disconnectSocket();
     };
@@ -234,13 +356,18 @@ export default function Index() {
         <ActivityIndicator size="large" />
 
         <Text style={styles.loadingText}>
-          Menghubungkan ke StreamDex...
+          Menghubungkan ke Kiln...
         </Text>
       </View>
     );
   }
 
-  const isLive = dashboard?.session?.status === "live";
+  const isLive =
+    dashboard?.session?.status === "live";
+
+  const hasActiveSession =
+    dashboard?.session &&
+    dashboard.session.status !== "ended";
 
   return (
     <ScrollView
@@ -249,36 +376,83 @@ export default function Index() {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={() => void loadDashboard(true)}
+          onRefresh={() =>
+            void loadDashboard(true)
+          }
         />
       }
     >
       <View style={styles.header}>
-        <View>
-          <Text style={styles.logo}>StreamDex</Text>
+        <View style={styles.headerInfo}>
+          <Text style={styles.logo}>
+            KILN
+          </Text>
+
           <Text style={styles.subtitle}>
-            Live Dashboard
+            {user?.email ??
+              "Live Dashboard"}
           </Text>
         </View>
 
-        <View
-          style={[
-            styles.statusBadge,
-            isLive ? styles.statusLive : styles.statusIdle,
-          ]}
-        >
+        <View style={styles.headerActions}>
           <View
             style={[
-              styles.statusDot,
+              styles.statusBadge,
               isLive
-                ? styles.statusDotLive
-                : styles.statusDotIdle,
+                ? styles.statusLive
+                : styles.statusIdle,
             ]}
-          />
+          >
+            <View
+              style={[
+                styles.statusDot,
+                isLive
+                  ? styles.statusDotLive
+                  : styles.statusDotIdle,
+              ]}
+            />
 
-          <Text style={styles.statusText}>
-            {isLive ? "LIVE" : "OFFLINE"}
-          </Text>
+            <Text style={styles.statusText}>
+              {isLive
+                ? "LIVE"
+                : "OFFLINE"}
+            </Text>
+          </View>
+
+          <Pressable
+            onPress={() =>
+              router.push("/account")
+            }
+            style={({ pressed }) => [
+              styles.accountButton,
+              pressed &&
+                styles.accountButtonPressed,
+            ]}
+          >
+            <Text style={styles.accountText}>
+              Account
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={handleLogout}
+            disabled={loggingOut}
+            style={({ pressed }) => [
+              styles.logoutButton,
+              pressed &&
+                styles.logoutButtonPressed,
+              loggingOut &&
+                styles.logoutButtonDisabled,
+            ]}
+          >
+            {loggingOut ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.logoutText}>
+                Keluar
+              </Text>
+            )}
+          </Pressable>
         </View>
       </View>
 
@@ -305,7 +479,87 @@ export default function Index() {
             Koneksi bermasalah
           </Text>
 
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorText}>
+            {error}
+          </Text>
+        </View>
+      )}
+
+      {!hasActiveSession && (
+        <View style={styles.platformCard}>
+          <Text style={styles.cardTitle}>
+            Platform Livestream
+          </Text>
+
+          <Text style={styles.platformDescription}>
+            Pilih platform yang ingin digunakan
+            untuk session ini.
+          </Text>
+
+          <View style={styles.selectionList}>
+            {AVAILABLE_PLATFORMS.map(
+              (platform) => {
+                const isSelected =
+                  selectedPlatforms.includes(
+                    platform,
+                  );
+
+                return (
+                  <Pressable
+                    key={platform}
+                    onPress={() =>
+                      togglePlatform(
+                        platform,
+                      )
+                    }
+                    style={({ pressed }) => [
+                      styles.platformOption,
+                      isSelected &&
+                        styles.platformOptionSelected,
+                      pressed &&
+                        styles.platformOptionPressed,
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.checkbox,
+                        isSelected &&
+                          styles.checkboxSelected,
+                      ]}
+                    >
+                      {isSelected && (
+                        <Text
+                          style={
+                            styles.checkmark
+                          }
+                        >
+                          ✓
+                        </Text>
+                      )}
+                    </View>
+
+                    <Text
+                      style={[
+                        styles.platformOptionText,
+                        isSelected &&
+                          styles.platformOptionTextSelected,
+                      ]}
+                    >
+                      {getPlatformLabel(
+                        platform,
+                      )}
+                    </Text>
+                  </Pressable>
+                );
+              },
+            )}
+          </View>
+
+          <Text style={styles.selectedText}>
+            {selectedPlatforms.length > 0
+              ? `${selectedPlatforms.length} platform dipilih`
+              : "Belum ada platform dipilih"}
+          </Text>
         </View>
       )}
 
@@ -317,29 +571,50 @@ export default function Index() {
         {dashboard?.session ? (
           <>
             <Text style={styles.sessionStatus}>
-              {isLive ? "Sedang live" : dashboard.session.status}
+              {isLive
+                ? "Sedang live"
+                : dashboard.session.status}
             </Text>
 
-            <Text style={styles.cardLabel}>Platform</Text>
+            <Text style={styles.cardLabel}>
+              Platform
+            </Text>
 
-            <View style={styles.platformContainer}>
-              {dashboard.session.platforms.map((platform) => (
-                <View
-                  key={platform}
-                  style={styles.platformBadge}
-                >
-                  <Text style={styles.platformText}>
-                    {getPlatformLabel(platform)}
-                  </Text>
-                </View>
-              ))}
+            <View
+              style={
+                styles.platformContainer
+              }
+            >
+              {dashboard.session.platforms.map(
+                (platform) => (
+                  <View
+                    key={platform}
+                    style={
+                      styles.platformBadge
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.platformText
+                      }
+                    >
+                      {getPlatformLabel(
+                        platform,
+                      )}
+                    </Text>
+                  </View>
+                ),
+              )}
             </View>
 
             {dashboard.session.startedAt && (
-              <Text style={styles.startedText}>
+              <Text
+                style={styles.startedText}
+              >
                 Dimulai{" "}
                 {formatEventTime(
-                  dashboard.session.startedAt,
+                  dashboard.session
+                    .startedAt,
                 )}
               </Text>
             )}
@@ -352,13 +627,21 @@ export default function Index() {
                   sessionLoading &&
                     styles.sessionButtonDisabled,
                 ]}
-                disabled={sessionLoading}
-                onPress={() => void handleEndStream()}
+                disabled={
+                  sessionLoading
+                }
+                onPress={() =>
+                  void handleEndStream()
+                }
               >
                 {sessionLoading ? (
                   <ActivityIndicator color="#ffffff" />
                 ) : (
-                  <Text style={styles.sessionButtonText}>
+                  <Text
+                    style={
+                      styles.sessionButtonText
+                    }
+                  >
                     AKHIRI STREAM
                   </Text>
                 )}
@@ -371,13 +654,21 @@ export default function Index() {
                   sessionLoading &&
                     styles.sessionButtonDisabled,
                 ]}
-                disabled={sessionLoading}
-                onPress={() => void handleStartStream()}
+                disabled={
+                  sessionLoading
+                }
+                onPress={() =>
+                  void handleStartStream()
+                }
               >
                 {sessionLoading ? (
                   <ActivityIndicator color="#ffffff" />
                 ) : (
-                  <Text style={styles.sessionButtonText}>
+                  <Text
+                    style={
+                      styles.sessionButtonText
+                    }
+                  >
                     MULAI STREAM
                   </Text>
                 )}
@@ -385,30 +676,49 @@ export default function Index() {
             )}
           </>
         ) : (
-          <View style={styles.emptySession}>
-            <Text style={styles.emptyTitle}>
+          <View
+            style={styles.emptySession}
+          >
+            <Text
+              style={styles.emptyTitle}
+            >
               Tidak ada session aktif
             </Text>
 
-            <Text style={styles.emptyText}>
-              Tekan tombol di bawah untuk membuat session
-              YouTube dan TikTok.
+            <Text
+              style={styles.emptyText}
+            >
+              Pilih platform di atas, kemudian
+              tekan tombol mulai stream.
             </Text>
 
             <Pressable
               style={[
                 styles.sessionButton,
                 styles.startButton,
-                sessionLoading &&
-                  styles.sessionButtonDisabled,
+                sessionLoading ||
+                  selectedPlatforms.length ===
+                    0
+                  ? styles.sessionButtonDisabled
+                  : null,
               ]}
-              disabled={sessionLoading}
-              onPress={() => void handleStartStream()}
+              disabled={
+                sessionLoading ||
+                selectedPlatforms.length ===
+                  0
+              }
+              onPress={() =>
+                void handleStartStream()
+              }
             >
               {sessionLoading ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text style={styles.sessionButtonText}>
+                <Text
+                  style={
+                    styles.sessionButtonText
+                  }
+                >
                   MULAI STREAM
                 </Text>
               )}
@@ -423,12 +733,15 @@ export default function Index() {
             {dashboard?.events.total ?? 0}
           </Text>
 
-          <Text style={styles.statLabel}>Total Event</Text>
+          <Text style={styles.statLabel}>
+            Total Event
+          </Text>
         </View>
 
         <View style={styles.statCard}>
           <Text style={styles.statValue}>
-            {dashboard?.events.recent.length ?? 0}
+            {dashboard?.events.recent.length ??
+              0}
           </Text>
 
           <Text style={styles.statLabel}>
@@ -450,47 +763,92 @@ export default function Index() {
 
         {dashboard?.events.recent.length ? (
           <View style={styles.eventList}>
-            {dashboard.events.recent.map((event) => (
-              <View
-                key={event.id}
-                style={styles.eventItem}
-              >
-                <View style={styles.eventTopRow}>
-                  <Text style={styles.eventUsername}>
-                    {event.username}
+            {dashboard.events.recent.map(
+              (event) => (
+                <View
+                  key={event.id}
+                  style={styles.eventItem}
+                >
+                  <View
+                    style={
+                      styles.eventTopRow
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.eventUsername
+                      }
+                    >
+                      {event.username}
+                    </Text>
+
+                    <Text
+                      style={
+                        styles.eventTime
+                      }
+                    >
+                      {formatEventTime(
+                        event.timestamp,
+                      )}
+                    </Text>
+                  </View>
+
+                  <Text
+                    style={
+                      styles.eventMessage
+                    }
+                  >
+                    {event.message ??
+                      getEventTypeLabel(
+                        event.type,
+                      )}
                   </Text>
 
-                  <Text style={styles.eventTime}>
-                    {formatEventTime(event.timestamp)}
-                  </Text>
+                  <View
+                    style={
+                      styles.eventBottomRow
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.eventPlatform
+                      }
+                    >
+                      {getPlatformLabel(
+                        event.platform,
+                      )}
+                    </Text>
+
+                    <Text
+                      style={
+                        styles.eventType
+                      }
+                    >
+                      {getEventTypeLabel(
+                        event.type,
+                      )}
+                    </Text>
+                  </View>
                 </View>
-
-                <Text style={styles.eventMessage}>
-                  {event.message ??
-                    getEventTypeLabel(event.type)}
-                </Text>
-
-                <View style={styles.eventBottomRow}>
-                  <Text style={styles.eventPlatform}>
-                    {getPlatformLabel(event.platform)}
-                  </Text>
-
-                  <Text style={styles.eventType}>
-                    {getEventTypeLabel(event.type)}
-                  </Text>
-                </View>
-              </View>
-            ))}
+              ),
+            )}
           </View>
         ) : (
-          <View style={styles.emptyEvents}>
-            <Text style={styles.emptyTitle}>
+          <View
+            style={styles.emptyEvents}
+          >
+            <Text
+              style={styles.emptyTitle}
+            >
               Belum ada event
             </Text>
 
-            <Text style={styles.emptyText}>
-              Chat, donation, follow, dan event lainnya akan
-              muncul di sini.
+            <Text
+              style={styles.emptyText}
+            >
+              Chat, donation, follow, dan
+              event lainnya akan muncul di
+              sini.
             </Text>
           </View>
         )}
@@ -526,6 +884,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 16,
+    gap: 12,
+  },
+  headerInfo: {
+    flex: 1,
   },
   logo: {
     color: "#ffffff",
@@ -536,6 +898,10 @@ const styles = StyleSheet.create({
     color: "#8f96a3",
     fontSize: 14,
     marginTop: 2,
+  },
+  headerActions: {
+    alignItems: "flex-end",
+    gap: 8,
   },
   statusBadge: {
     flexDirection: "row",
@@ -570,6 +936,47 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "800",
   },
+  accountButton: {
+    minWidth: 72,
+    minHeight: 36,
+    paddingHorizontal: 12,
+    borderRadius: 9,
+    backgroundColor: "#2563eb",
+    borderWidth: 1,
+    borderColor: "#3b82f6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  accountButtonPressed: {
+    opacity: 0.7,
+  },
+  accountText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  logoutButton: {
+    minWidth: 72,
+    minHeight: 36,
+    paddingHorizontal: 12,
+    borderRadius: 9,
+    backgroundColor: "#292e38",
+    borderWidth: 1,
+    borderColor: "#3a414d",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoutButtonPressed: {
+    opacity: 0.7,
+  },
+  logoutButtonDisabled: {
+    opacity: 0.5,
+  },
+  logoutText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
   connectionCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -597,6 +1004,74 @@ const styles = StyleSheet.create({
     color: "#aeb4bf",
     fontSize: 12,
     fontWeight: "600",
+  },
+  platformCard: {
+    backgroundColor: "#181b21",
+    borderWidth: 1,
+    borderColor: "#292e38",
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 14,
+  },
+  platformDescription: {
+    color: "#7f8795",
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 6,
+    marginBottom: 16,
+  },
+  selectionList: {
+    gap: 9,
+  },
+  platformOption: {
+    minHeight: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#20242c",
+    borderWidth: 1,
+    borderColor: "#2d333e",
+    borderRadius: 11,
+    paddingHorizontal: 13,
+  },
+  platformOptionSelected: {
+    backgroundColor: "#172c50",
+    borderColor: "#2563eb",
+  },
+  platformOptionPressed: {
+    opacity: 0.7,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#555d6b",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 11,
+  },
+  checkboxSelected: {
+    backgroundColor: "#2563eb",
+    borderColor: "#3b82f6",
+  },
+  checkmark: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  platformOptionText: {
+    color: "#d5d9e0",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  platformOptionTextSelected: {
+    color: "#ffffff",
+    fontWeight: "700",
+  },
+  selectedText: {
+    color: "#7f8795",
+    fontSize: 12,
+    marginTop: 13,
   },
   sessionCard: {
     backgroundColor: "#181b21",

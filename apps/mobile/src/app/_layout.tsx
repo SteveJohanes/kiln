@@ -1,18 +1,64 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import {
+  Stack,
+  useRootNavigationState,
+  useRouter,
+  useSegments,
+} from "expo-router";
+import { useEffect } from "react";
+import { AuthProvider, useAuth } from "../lib/auth-context";
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+function AuthGuard() {
+  const {
+    isLoading,
+    isLoggedIn,
+  } = useAuth();
 
-SplashScreen.preventAutoHideAsync();
+  const segments = useSegments();
+  const router = useRouter();
+  const navigationState = useRootNavigationState();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    if (!navigationState?.key) {
+      return;
+    }
+
+    const isLoginScreen =
+      segments[0] === "auth" &&
+      segments[1] === "login";
+
+    if (!isLoggedIn && !isLoginScreen) {
+      router.replace("/auth/login");
+      return;
+    }
+
+    if (isLoggedIn && isLoginScreen) {
+      router.replace("/");
+    }
+  }, [
+    isLoading,
+    isLoggedIn,
+    navigationState?.key,
+    segments,
+    router,
+  ]);
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    />
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <AuthGuard />
+    </AuthProvider>
   );
 }

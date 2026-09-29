@@ -1,4 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import type {
   Platform,
   StreamSession,
@@ -7,11 +10,18 @@ import type {
 
 @Injectable()
 export class StreamSessionService {
-  private readonly sessions = new Map<string, StreamSession>();
+  private readonly sessions = new Map<
+    string,
+    StreamSession
+  >();
 
-  createSession(platforms: Platform[]): StreamSession {
+  createSession(
+    userId: string,
+    platforms: Platform[],
+  ): StreamSession {
     const session: StreamSession = {
       id: crypto.randomUUID(),
+      userId,
       status: "idle",
       platforms,
     };
@@ -21,22 +31,43 @@ export class StreamSessionService {
     return session;
   }
 
-  getSession(id: string): StreamSession | undefined {
-    return this.sessions.get(id);
+  getSession(
+    id: string,
+    userId: string,
+  ): StreamSession {
+    const session = this.sessions.get(id);
+
+    if (!session || session.userId !== userId) {
+      throw new NotFoundException(
+        "Session tidak ditemukan.",
+      );
+    }
+
+    return session;
   }
 
-  getAllSessions(): StreamSession[] {
-    return Array.from(this.sessions.values());
-  }
-
-  getActiveSession(): StreamSession | undefined {
-    return Array.from(this.sessions.values()).find(
-      (session) => session.status === "live",
+  getAllSessions(
+    userId: string,
+  ): StreamSession[] {
+    return Array.from(this.sessions.values()).filter(
+      (session) => session.userId === userId,
     );
   }
 
-  getLatestSession(): StreamSession | undefined {
-    const sessions = this.getAllSessions();
+  getActiveSession(
+    userId: string,
+  ): StreamSession | undefined {
+    return Array.from(this.sessions.values()).find(
+      (session) =>
+        session.userId === userId &&
+        session.status === "live",
+    );
+  }
+
+  getLatestSession(
+    userId: string,
+  ): StreamSession | undefined {
+    const sessions = this.getAllSessions(userId);
 
     if (sessions.length === 0) {
       return undefined;
@@ -59,11 +90,16 @@ export class StreamSessionService {
     });
   }
 
-  startSession(id: string): StreamSession | undefined {
+  startSession(
+    id: string,
+    userId: string,
+  ): StreamSession {
     const session = this.sessions.get(id);
 
-    if (!session) {
-      return undefined;
+    if (!session || session.userId !== userId) {
+      throw new NotFoundException(
+        "Session tidak ditemukan.",
+      );
     }
 
     session.status = "live";
@@ -75,11 +111,16 @@ export class StreamSessionService {
     return session;
   }
 
-  endSession(id: string): StreamSession | undefined {
+  endSession(
+    id: string,
+    userId: string,
+  ): StreamSession {
     const session = this.sessions.get(id);
 
-    if (!session) {
-      return undefined;
+    if (!session || session.userId !== userId) {
+      throw new NotFoundException(
+        "Session tidak ditemukan.",
+      );
     }
 
     session.status = "ended";
@@ -92,12 +133,15 @@ export class StreamSessionService {
 
   updateSessionStatus(
     id: string,
+    userId: string,
     status: StreamSessionStatus,
-  ): StreamSession | undefined {
+  ): StreamSession {
     const session = this.sessions.get(id);
 
-    if (!session) {
-      return undefined;
+    if (!session || session.userId !== userId) {
+      throw new NotFoundException(
+        "Session tidak ditemukan.",
+      );
     }
 
     session.status = status;
@@ -115,7 +159,18 @@ export class StreamSessionService {
     return session;
   }
 
-  deleteSession(id: string): boolean {
+  deleteSession(
+    id: string,
+    userId: string,
+  ): boolean {
+    const session = this.sessions.get(id);
+
+    if (!session || session.userId !== userId) {
+      throw new NotFoundException(
+        "Session tidak ditemukan.",
+      );
+    }
+
     return this.sessions.delete(id);
   }
 }

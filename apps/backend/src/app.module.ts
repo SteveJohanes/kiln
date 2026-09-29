@@ -7,9 +7,10 @@ import { StreamSessionService } from "./stream/stream-session.service";
 import { StreamSessionController } from "./stream/stream-session.controller";
 import { DashboardService } from "./dashboard/dashboard.service";
 import { DashboardController } from "./dashboard/dashboard.controller";
+import { AuthModule } from "./auth/auth.module";
 
 @Module({
-  imports: [],
+  imports: [AuthModule],
   controllers: [
     AppController,
     StreamSessionController,

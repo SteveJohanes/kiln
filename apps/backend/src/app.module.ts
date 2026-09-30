@@ -25,6 +25,7 @@ import { PrismaService } from "./prisma/prisma.service";
 import { RedisService } from "./redis/redis.service";
 import { RedisCacheService } from "./redis/redis-cache.service";
 import { RedisQueueService } from "./redis/redis-queue.service";
+import { RedisPubSubService } from "./redis/redis-pubsub.service";
 
 @Module({
   imports: [AuthModule],
@@ -44,6 +45,7 @@ import { RedisQueueService } from "./redis/redis-queue.service";
     RedisService,
     RedisCacheService,
     RedisQueueService,
+    RedisPubSubService,
 
     EventService,
     EventGateway,

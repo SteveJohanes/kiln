@@ -18,7 +18,16 @@ export class EventProcessorService
     private readonly redisQueueService: RedisQueueService,
   ) {}
 
-  onModuleInit(): void {
+  async onModuleInit(): Promise<void> {
+    const recoveredCount =
+      await this.redisQueueService.requeueProcessingEvents();
+
+    if (recoveredCount > 0) {
+      console.log(
+        `[EventProcessor] Memulihkan ${recoveredCount} event dari processing queue.`,
+      );
+    }
+
     this.isRunning = true;
 
     this.processingPromise =
@@ -35,8 +44,10 @@ export class EventProcessorService
 
   private async processQueue(): Promise<void> {
     while (this.isRunning) {
+      let event: StreamEvent | null = null;
+
       try {
-        const event =
+        event =
           await this.redisQueueService.dequeueEvent();
 
         if (!event) {
@@ -45,11 +56,21 @@ export class EventProcessorService
         }
 
         await this.processEvent(event);
+
+        await this.redisQueueService.acknowledgeEvent(
+          event,
+        );
       } catch (error) {
         console.error(
           "[EventProcessor] Gagal memproses event:",
           error,
         );
+
+        if (event) {
+          console.error(
+            "[EventProcessor] Event tetap berada di processing queue dan akan dipulihkan saat backend restart.",
+          );
+        }
 
         await this.sleep(500);
       }

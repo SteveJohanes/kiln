@@ -21,6 +21,7 @@ import type {
 import { StreamEventPersistenceService } from "./stream-event-persistence.service";
 import { RedisCacheService } from "../redis/redis-cache.service";
 import { RedisQueueService } from "../redis/redis-queue.service";
+import { RedisPubSubService } from "../redis/redis-pubsub.service";
 
 @Injectable()
 export class EventService
@@ -35,6 +36,7 @@ export class EventService
     private readonly persistenceService: StreamEventPersistenceService,
     private readonly redisCacheService: RedisCacheService,
     private readonly redisQueueService: RedisQueueService,
+    private readonly redisPubSubService: RedisPubSubService,
   ) {
     this.adapterRegistry.register(
       new YouTubeAdapter(),
@@ -94,6 +96,15 @@ export class EventService
         );
       });
 
+    void this.redisPubSubService
+      .publish(event)
+      .catch((error) => {
+        console.error(
+          "[RedisPubSub] Gagal publish event:",
+          error,
+        );
+      });
+
     if (userId) {
       void this.persistenceService
         .createEvent(
@@ -112,7 +123,9 @@ export class EventService
     this.eventBus.publish(event);
   }
 
-  subscribe(handler: EventHandler): () => void {
+  subscribe(
+    handler: EventHandler,
+  ): () => void {
     return this.eventBus.subscribe(handler);
   }
 

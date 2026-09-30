@@ -10,6 +10,7 @@ import { JwtService } from "@nestjs/jwt";
 import { Server, Socket } from "socket.io";
 import type { StreamEvent } from "@streamdex/types";
 import { EventService } from "./event.service";
+import { RedisPubSubService } from "../redis/redis-pubsub.service";
 
 type JwtPayload = {
   sub: string;
@@ -33,8 +34,9 @@ export class EventGateway {
   constructor(
     private readonly eventService: EventService,
     private readonly jwtService: JwtService,
+    private readonly redisPubSubService: RedisPubSubService,
   ) {
-    this.eventService.subscribe((event) => {
+    this.redisPubSubService.subscribe((event) => {
       this.server.emit("stream:event", event);
     });
   }

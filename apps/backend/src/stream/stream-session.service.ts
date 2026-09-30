@@ -7,35 +7,58 @@ import type {
   StreamSession,
   StreamSessionStatus,
 } from "@streamdex/types";
+import { StreamSessionPersistenceService } from "./stream-session-persistence.service";
 
 @Injectable()
 export class StreamSessionService {
-  private readonly sessions = new Map<
-    string,
-    StreamSession
-  >();
+  constructor(
+    private readonly persistenceService: StreamSessionPersistenceService,
+  ) {}
 
-  createSession(
-    userId: string,
-    platforms: Platform[],
+  private toStreamSession(
+    session: {
+      id: string;
+      userId: string;
+      status: StreamSessionStatus;
+      platforms: Platform[];
+      startedAt: Date | null;
+      endedAt: Date | null;
+    },
   ): StreamSession {
-    const session: StreamSession = {
-      id: crypto.randomUUID(),
-      userId,
-      status: "idle",
-      platforms,
+    return {
+      id: session.id,
+      userId: session.userId,
+      status: session.status,
+      platforms: session.platforms,
+      ...(session.startedAt && {
+        startedAt: session.startedAt.getTime(),
+      }),
+      ...(session.endedAt && {
+        endedAt: session.endedAt.getTime(),
+      }),
     };
-
-    this.sessions.set(session.id, session);
-
-    return session;
   }
 
-  getSession(
+  async createSession(
+    userId: string,
+    platforms: Platform[],
+  ): Promise<StreamSession> {
+    const session =
+      await this.persistenceService.createSession(
+        crypto.randomUUID(),
+        userId,
+        platforms,
+      );
+
+    return this.toStreamSession(session);
+  }
+
+  async getSession(
     id: string,
     userId: string,
-  ): StreamSession {
-    const session = this.sessions.get(id);
+  ): Promise<StreamSession> {
+    const session =
+      await this.persistenceService.findById(id);
 
     if (!session || session.userId !== userId) {
       throw new NotFoundException(
@@ -43,58 +66,76 @@ export class StreamSessionService {
       );
     }
 
-    return session;
+    return this.toStreamSession(session);
   }
 
-  getAllSessions(
+  async getAllSessions(
     userId: string,
-  ): StreamSession[] {
-    return Array.from(this.sessions.values()).filter(
-      (session) => session.userId === userId,
+  ): Promise<StreamSession[]> {
+    const sessions =
+      await this.persistenceService.findAllByUserId(
+        userId,
+      );
+
+    return sessions.map((session) =>
+      this.toStreamSession(session),
     );
   }
 
-  getActiveSession(
+  async getActiveSession(
     userId: string,
-  ): StreamSession | undefined {
-    return Array.from(this.sessions.values()).find(
-      (session) =>
-        session.userId === userId &&
-        session.status === "live",
-    );
+  ): Promise<StreamSession | undefined> {
+    const session =
+      await this.persistenceService.findActiveByUserId(
+        userId,
+      );
+
+    if (!session) {
+      return undefined;
+    }
+
+    return this.toStreamSession(session);
   }
 
-  getLatestSession(
+  async getLatestSession(
     userId: string,
-  ): StreamSession | undefined {
-    const sessions = this.getAllSessions(userId);
+  ): Promise<StreamSession | undefined> {
+    const sessions =
+      await this.persistenceService.findAllByUserId(
+        userId,
+      );
 
     if (sessions.length === 0) {
       return undefined;
     }
 
-    return sessions.reduce((latest, current) => {
-      const latestTime =
-        latest.startedAt ??
-        latest.endedAt ??
-        0;
+    const latest = sessions.reduce(
+      (latestSession, currentSession) => {
+        const latestTime =
+          latestSession.startedAt ??
+          latestSession.endedAt ??
+          latestSession.createdAt.getTime();
 
-      const currentTime =
-        current.startedAt ??
-        current.endedAt ??
-        0;
+        const currentTime =
+          currentSession.startedAt ??
+          currentSession.endedAt ??
+          currentSession.createdAt.getTime();
 
-      return currentTime >= latestTime
-        ? current
-        : latest;
-    });
+        return currentTime >= latestTime
+          ? currentSession
+          : latestSession;
+      },
+    );
+
+    return this.toStreamSession(latest);
   }
 
-  startSession(
+  async startSession(
     id: string,
     userId: string,
-  ): StreamSession {
-    const session = this.sessions.get(id);
+  ): Promise<StreamSession> {
+    const session =
+      await this.persistenceService.findById(id);
 
     if (!session || session.userId !== userId) {
       throw new NotFoundException(
@@ -102,20 +143,23 @@ export class StreamSessionService {
       );
     }
 
-    session.status = "live";
-    session.startedAt = Date.now();
-    delete session.endedAt;
+    const updatedSession =
+      await this.persistenceService.updateStatus(
+        id,
+        "live",
+        new Date(),
+        undefined,
+      );
 
-    this.sessions.set(id, session);
-
-    return session;
+    return this.toStreamSession(updatedSession);
   }
 
-  endSession(
+  async endSession(
     id: string,
     userId: string,
-  ): StreamSession {
-    const session = this.sessions.get(id);
+  ): Promise<StreamSession> {
+    const session =
+      await this.persistenceService.findById(id);
 
     if (!session || session.userId !== userId) {
       throw new NotFoundException(
@@ -123,20 +167,24 @@ export class StreamSessionService {
       );
     }
 
-    session.status = "ended";
-    session.endedAt = Date.now();
+    const updatedSession =
+      await this.persistenceService.updateStatus(
+        id,
+        "ended",
+        undefined,
+        new Date(),
+      );
 
-    this.sessions.set(id, session);
-
-    return session;
+    return this.toStreamSession(updatedSession);
   }
 
-  updateSessionStatus(
+  async updateSessionStatus(
     id: string,
     userId: string,
     status: StreamSessionStatus,
-  ): StreamSession {
-    const session = this.sessions.get(id);
+  ): Promise<StreamSession> {
+    const session =
+      await this.persistenceService.findById(id);
 
     if (!session || session.userId !== userId) {
       throw new NotFoundException(
@@ -144,26 +192,33 @@ export class StreamSessionService {
       );
     }
 
-    session.status = status;
+    const startedAt =
+      status === "live" && !session.startedAt
+        ? new Date()
+        : undefined;
 
-    if (status === "live" && !session.startedAt) {
-      session.startedAt = Date.now();
-    }
+    const endedAt =
+      status === "ended" && !session.endedAt
+        ? new Date()
+        : undefined;
 
-    if (status === "ended" && !session.endedAt) {
-      session.endedAt = Date.now();
-    }
+    const updatedSession =
+      await this.persistenceService.updateStatus(
+        id,
+        status,
+        startedAt,
+        endedAt,
+      );
 
-    this.sessions.set(id, session);
-
-    return session;
+    return this.toStreamSession(updatedSession);
   }
 
-  deleteSession(
+  async deleteSession(
     id: string,
     userId: string,
-  ): boolean {
-    const session = this.sessions.get(id);
+  ): Promise<boolean> {
+    const session =
+      await this.persistenceService.findById(id);
 
     if (!session || session.userId !== userId) {
       throw new NotFoundException(
@@ -171,6 +226,8 @@ export class StreamSessionService {
       );
     }
 
-    return this.sessions.delete(id);
+    await this.persistenceService.deleteSession(id);
+
+    return true;
   }
 }

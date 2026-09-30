@@ -1,4 +1,3 @@
-
 import {
   ConnectedSocket,
   MessageBody,
@@ -43,13 +42,9 @@ export class EventGateway {
   afterInit(server: Server): void {
     server.use((socket, next) => {
       try {
-        const token =
-          socket.handshake.auth?.token;
+        const token = socket.handshake.auth?.token;
 
-        if (
-          typeof token !== "string" ||
-          !token
-        ) {
+        if (typeof token !== "string" || !token) {
           return next(
             new UnauthorizedException(
               "Token autentikasi diperlukan.",
@@ -58,15 +53,12 @@ export class EventGateway {
         }
 
         const payload =
-          this.jwtService.verify<JwtPayload>(
-            token,
-          );
+          this.jwtService.verify<JwtPayload>(token);
 
         const authenticatedSocket =
           socket as AuthenticatedSocket;
 
-        authenticatedSocket.userId =
-          payload.sub;
+        authenticatedSocket.userId = payload.sub;
 
         next();
       } catch {
@@ -86,14 +78,16 @@ export class EventGateway {
   ): void {
     if (!client.userId) {
       client.emit("stream:error", {
-        message:
-          "User belum terautentikasi.",
+        message: "User belum terautentikasi.",
       });
 
       return;
     }
 
-    this.eventService.publish(event);
+    this.eventService.publish(
+      event,
+      client.userId,
+    );
 
     client.emit("stream:published", {
       success: true,

@@ -1,0 +1,78 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Platform {
+  youtube
+  tiktok
+  twitch
+  kick
+}
+
+enum StreamSessionStatus {
+  idle
+  live
+  ended
+}
+
+enum StreamEventType {
+  chat
+  donation
+  follow
+  subscribe
+  member
+  raid
+  system
+}
+
+model User {
+  id        String          @id
+  email     String          @unique
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  sessions  StreamSession[]
+  events    StreamEvent[]
+}
+
+model StreamSession {
+  id        String             @id
+  userId    String
+  status    StreamSessionStatus
+  platforms Platform[]
+  startedAt DateTime?
+  endedAt   DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events StreamEvent[]
+
+  @@index([userId])
+}
+
+model StreamEvent {
+  id        String           @id
+  userId    String
+  sessionId String?
+  platform  Platform
+  type      StreamEventType
+  username  String
+  message   String?
+  amount    Float?
+  currency  String?
+  timestamp DateTime
+  createdAt DateTime        @default(now())
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session StreamSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([timestamp])
+}

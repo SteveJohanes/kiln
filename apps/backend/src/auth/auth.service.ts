@@ -1,30 +1,40 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import type { UserIdentity } from './auth.types';
+import {
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import * as bcrypt from "bcrypt";
+import type { UserIdentity } from "./auth.types";
+import { UserPersistenceService } from "../user/user-persistence.service";
 
 @Injectable()
 export class AuthService {
-  private readonly demoUser = {
-    id: 'user-001',
-    email: 'demo@kiln.app',
-    passwordHash: bcrypt.hashSync('kiln123', 10),
-    createdAt: Date.now(),
-  };
+  private readonly demoPasswordHash = bcrypt.hashSync(
+    "kiln123",
+    10,
+  );
 
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly userPersistenceService: UserPersistenceService,
+  ) {}
 
   async validateUser(
     email: string,
     password: string,
   ): Promise<UserIdentity | null> {
-    if (email !== this.demoUser.email) {
+    const user =
+      await this.userPersistenceService.findByEmail(
+        email,
+      );
+
+    if (!user) {
       return null;
     }
 
     const passwordMatches = await bcrypt.compare(
       password,
-      this.demoUser.passwordHash,
+      this.demoPasswordHash,
     );
 
     if (!passwordMatches) {
@@ -32,30 +42,68 @@ export class AuthService {
     }
 
     return {
-      id: this.demoUser.id,
-      email: this.demoUser.email,
-      createdAt: this.demoUser.createdAt,
+      id: user.id,
+      email: user.email,
+      createdAt: user.createdAt.getTime(),
     };
   }
 
-  async login(email: string, password: string) {
-    const user = await this.validateUser(email, password);
+  async login(
+    email: string,
+    password: string,
+  ) {
+    const normalizedEmail = email
+      .trim()
+      .toLowerCase();
 
-    if (!user) {
-      throw new UnauthorizedException('Email atau password salah.');
+    let user =
+      await this.userPersistenceService.findByEmail(
+        normalizedEmail,
+      );
+
+    if (!user && normalizedEmail === "demo@kiln.app") {
+      user =
+        await this.userPersistenceService.createUser(
+          "user-001",
+          normalizedEmail,
+        );
     }
 
-    const payload = {
-      sub: user.id,
+    if (!user) {
+      throw new UnauthorizedException(
+        "Email atau password salah.",
+      );
+    }
+
+    const passwordMatches = await bcrypt.compare(
+      password,
+      this.demoPasswordHash,
+    );
+
+    if (!passwordMatches) {
+      throw new UnauthorizedException(
+        "Email atau password salah.",
+      );
+    }
+
+    const userIdentity: UserIdentity = {
+      id: user.id,
       email: user.email,
-      createdAt: user.createdAt,
+      createdAt: user.createdAt.getTime(),
     };
 
-    const accessToken = await this.jwtService.signAsync(payload);
+    const payload = {
+      sub: userIdentity.id,
+      email: userIdentity.email,
+      createdAt: userIdentity.createdAt,
+    };
+
+    const accessToken =
+      await this.jwtService.signAsync(payload);
 
     return {
       accessToken,
-      user,
+      user: userIdentity,
     };
   }
 }

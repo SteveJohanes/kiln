@@ -22,6 +22,7 @@ export type StreamEvent = {
   amount?: number;
   currency?: string;
   timestamp: number;
+  sessionId?: string;
 };
 
 export type StreamSessionStatus =

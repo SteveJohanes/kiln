@@ -11,6 +11,7 @@ import {
   YouTubeAdapter,
 } from "@streamdex/platform-core";
 import type { Platform, StreamEvent } from "@streamdex/types";
+import { StreamEventPersistenceService } from "./stream-event-persistence.service";
 
 @Injectable()
 export class EventService implements OnModuleInit, OnModuleDestroy {
@@ -18,7 +19,9 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
   private readonly adapterRegistry = new PlatformAdapterRegistry();
   private readonly eventHistory: StreamEvent[] = [];
 
-  constructor() {
+  constructor(
+    private readonly persistenceService: StreamEventPersistenceService,
+  ) {
     this.adapterRegistry.register(new YouTubeAdapter());
     this.adapterRegistry.register(new TikTokAdapter());
     this.adapterRegistry.register(new TwitchAdapter());
@@ -45,8 +48,27 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  publish(event: StreamEvent): void {
+  publish(
+    event: StreamEvent,
+    userId?: string,
+  ): void {
     this.eventHistory.push(event);
+
+    if (userId) {
+      void this.persistenceService
+        .createEvent(
+          event,
+          userId,
+          event.sessionId,
+        )
+        .catch((error) => {
+          console.error(
+            "[EventPersistence] Gagal menyimpan event:",
+            error,
+          );
+        });
+    }
+
     this.eventBus.publish(event);
   }
 

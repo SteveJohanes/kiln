@@ -104,15 +104,16 @@ export class StreamSessionController {
   }
 
   @Post(":id/delete")
-  deleteSession(
+  async deleteSession(
     @Param("id") id: string,
     @Req() request: AuthenticatedRequest,
   ) {
     return {
-      success: this.streamSessionService.deleteSession(
-        id,
-        request.user.id,
-      ),
+      success:
+        await this.streamSessionService.deleteSession(
+          id,
+          request.user.id,
+        ),
     };
   }
 }

@@ -5,6 +5,7 @@ import { AppService } from "./app.service";
 
 import { EventService } from "./event/event.service";
 import { EventGateway } from "./event/event.gateway";
+import { EventProcessorService } from "./event/event-processor.service";
 import { StreamEventPersistenceService } from "./event/stream-event-persistence.service";
 
 import { StreamSessionService } from "./stream/stream-session.service";
@@ -21,6 +22,10 @@ import { AuthModule } from "./auth/auth.module";
 
 import { PrismaService } from "./prisma/prisma.service";
 
+import { RedisService } from "./redis/redis.service";
+import { RedisCacheService } from "./redis/redis-cache.service";
+import { RedisQueueService } from "./redis/redis-queue.service";
+
 @Module({
   imports: [AuthModule],
 
@@ -36,8 +41,13 @@ import { PrismaService } from "./prisma/prisma.service";
 
     PrismaService,
 
+    RedisService,
+    RedisCacheService,
+    RedisQueueService,
+
     EventService,
     EventGateway,
+    EventProcessorService,
     StreamEventPersistenceService,
 
     StreamSessionService,

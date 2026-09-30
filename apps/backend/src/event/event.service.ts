@@ -1,4 +1,8 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import {
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+} from "@nestjs/common";
 import {
   EventBus,
   type EventHandler,
@@ -10,22 +14,40 @@ import {
   TwitchAdapter,
   YouTubeAdapter,
 } from "@streamdex/platform-core";
-import type { Platform, StreamEvent } from "@streamdex/types";
+import type {
+  Platform,
+  StreamEvent,
+} from "@streamdex/types";
 import { StreamEventPersistenceService } from "./stream-event-persistence.service";
+import { RedisCacheService } from "../redis/redis-cache.service";
+import { RedisQueueService } from "../redis/redis-queue.service";
 
 @Injectable()
-export class EventService implements OnModuleInit, OnModuleDestroy {
+export class EventService
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly eventBus = new EventBus();
-  private readonly adapterRegistry = new PlatformAdapterRegistry();
+  private readonly adapterRegistry =
+    new PlatformAdapterRegistry();
   private readonly eventHistory: StreamEvent[] = [];
 
   constructor(
     private readonly persistenceService: StreamEventPersistenceService,
+    private readonly redisCacheService: RedisCacheService,
+    private readonly redisQueueService: RedisQueueService,
   ) {
-    this.adapterRegistry.register(new YouTubeAdapter());
-    this.adapterRegistry.register(new TikTokAdapter());
-    this.adapterRegistry.register(new TwitchAdapter());
-    this.adapterRegistry.register(new KickAdapter());
+    this.adapterRegistry.register(
+      new YouTubeAdapter(),
+    );
+    this.adapterRegistry.register(
+      new TikTokAdapter(),
+    );
+    this.adapterRegistry.register(
+      new TwitchAdapter(),
+    );
+    this.adapterRegistry.register(
+      new KickAdapter(),
+    );
   }
 
   onModuleInit(): void {
@@ -54,6 +76,24 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
   ): void {
     this.eventHistory.push(event);
 
+    void this.redisCacheService
+      .addRecentEvent(event)
+      .catch((error) => {
+        console.error(
+          "[RedisCache] Gagal menyimpan event:",
+          error,
+        );
+      });
+
+    void this.redisQueueService
+      .enqueueEvent(event)
+      .catch((error) => {
+        console.error(
+          "[RedisQueue] Gagal memasukkan event ke queue:",
+          error,
+        );
+      });
+
     if (userId) {
       void this.persistenceService
         .createEvent(
@@ -76,8 +116,12 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
     return this.eventBus.subscribe(handler);
   }
 
-  getRecentEvents(limit = 20): StreamEvent[] {
-    return this.eventHistory.slice(-limit).reverse();
+  getRecentEvents(
+    limit = 20,
+  ): StreamEvent[] {
+    return this.eventHistory
+      .slice(-limit)
+      .reverse();
   }
 
   getEventCount(): number {

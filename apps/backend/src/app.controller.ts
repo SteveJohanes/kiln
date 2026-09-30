@@ -92,7 +92,8 @@ export class AppController {
     event: TestEventBody,
     userId: string,
   ): StreamEvent {
-    const adapter = this.eventService.getAdapter(platform);
+    const adapter =
+      this.eventService.getAdapter(platform);
 
     if (!adapter) {
       throw new Error(
@@ -108,11 +109,16 @@ export class AppController {
 
     (
       adapter as typeof adapter & {
-        emitTestEvent: (event: StreamEvent) => void;
+        emitTestEvent: (
+          event: StreamEvent,
+        ) => void;
       }
     ).emitTestEvent(event);
 
-    this.eventService.publish(event, userId);
+    this.eventService.publish(
+      event,
+      userId,
+    );
 
     return event;
   }

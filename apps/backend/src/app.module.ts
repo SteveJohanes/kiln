@@ -1,3 +1,4 @@
+﻿
 import { Module } from "@nestjs/common";
 
 import { AppController } from "./app.controller";
@@ -27,6 +28,13 @@ import { RedisCacheService } from "./redis/redis-cache.service";
 import { RedisQueueService } from "./redis/redis-queue.service";
 import { RedisPubSubService } from "./redis/redis-pubsub.service";
 
+import { PlatformConnectionService } from "./platform-connection/platform-connection.service";
+import { PlatformConnectionController } from "./platform-connection/platform-connection.controller";
+import { TokenEncryptionService } from "./platform-connection/token-encryption.service";
+import { YoutubeOAuthService } from "./platform-connection/youtube-oauth.service";
+import { YoutubeOAuthController } from "./platform-connection/youtube-oauth.controller";
+import { YoutubeLiveChatService } from "./platform-connection/youtube-live-chat.service";
+
 @Module({
   imports: [AuthModule],
 
@@ -35,11 +43,12 @@ import { RedisPubSubService } from "./redis/redis-pubsub.service";
     StreamSessionController,
     DashboardController,
     StreamHistoryController,
+    PlatformConnectionController,
+    YoutubeOAuthController,
   ],
 
   providers: [
     AppService,
-
     PrismaService,
 
     RedisService,
@@ -56,8 +65,12 @@ import { RedisPubSubService } from "./redis/redis-pubsub.service";
     StreamSessionPersistenceService,
 
     DashboardService,
-
     StreamHistoryService,
+
+    PlatformConnectionService,
+    TokenEncryptionService,
+    YoutubeOAuthService,
+    YoutubeLiveChatService,
   ],
 })
 export class AppModule {}

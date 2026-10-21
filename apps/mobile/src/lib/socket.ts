@@ -1,7 +1,7 @@
 import { io, type Socket } from "socket.io-client";
 import { getAccessToken } from "./auth-storage";
 
-const SOCKET_URL = "http://192.168.1.6:3000";
+const SOCKET_URL = "http://192.168.1.11:3000";
 
 export const socket: Socket = io(SOCKET_URL, {
   autoConnect: false,

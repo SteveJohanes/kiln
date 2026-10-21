@@ -5,9 +5,14 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
-import { UnauthorizedException } from "@nestjs/common";
+import {
+  UnauthorizedException,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { Server, Socket } from "socket.io";
+import {
+  Server,
+  Socket,
+} from "socket.io";
 import type { StreamEvent } from "@streamdex/types";
 import { EventService } from "./event.service";
 import { RedisPubSubService } from "../redis/redis-pubsub.service";
@@ -36,9 +41,13 @@ export class EventGateway {
     private readonly jwtService: JwtService,
     private readonly redisPubSubService: RedisPubSubService,
   ) {
-    this.redisPubSubService.subscribe((event) => {
-      this.server.emit("stream:event", event);
-    });
+    this.redisPubSubService.subscribe(
+      ({ userId, event }) => {
+        this.server
+          ?.to(this.getUserRoom(userId))
+          .emit("stream:event", event);
+      },
+    );
   }
 
   afterInit(server: Server): void {
@@ -57,6 +66,17 @@ export class EventGateway {
         const payload =
           this.jwtService.verify<JwtPayload>(token);
 
+        if (
+          typeof payload.sub !== "string" ||
+          !payload.sub.trim()
+        ) {
+          return next(
+            new UnauthorizedException(
+              "Token tidak memiliki identitas pengguna yang valid.",
+            ),
+          );
+        }
+
         const authenticatedSocket =
           socket as AuthenticatedSocket;
 
@@ -71,6 +91,23 @@ export class EventGateway {
         );
       }
     });
+
+    server.on(
+      "connection",
+      (socket: Socket) => {
+        const client =
+          socket as AuthenticatedSocket;
+
+        if (!client.userId) {
+          client.disconnect(true);
+          return;
+        }
+
+        void client.join(
+          this.getUserRoom(client.userId),
+        );
+      },
+    );
   }
 
   @SubscribeMessage("stream:publish")
@@ -86,6 +123,22 @@ export class EventGateway {
       return;
     }
 
+    if (
+      !event ||
+      typeof event.id !== "string" ||
+      !event.id.trim() ||
+      typeof event.platform !== "string" ||
+      typeof event.type !== "string" ||
+      typeof event.username !== "string" ||
+      typeof event.timestamp !== "number"
+    ) {
+      client.emit("stream:error", {
+        message: "Format event tidak valid.",
+      });
+
+      return;
+    }
+
     this.eventService.publish(
       event,
       client.userId,
@@ -95,5 +148,9 @@ export class EventGateway {
       success: true,
       eventId: event.id,
     });
+  }
+
+  private getUserRoom(userId: string): string {
+    return `user:${userId}`;
   }
 }

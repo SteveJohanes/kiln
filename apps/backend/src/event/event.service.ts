@@ -38,18 +38,10 @@ export class EventService
     private readonly redisQueueService: RedisQueueService,
     private readonly redisPubSubService: RedisPubSubService,
   ) {
-    this.adapterRegistry.register(
-      new YouTubeAdapter(),
-    );
-    this.adapterRegistry.register(
-      new TikTokAdapter(),
-    );
-    this.adapterRegistry.register(
-      new TwitchAdapter(),
-    );
-    this.adapterRegistry.register(
-      new KickAdapter(),
-    );
+    this.adapterRegistry.register(new YouTubeAdapter());
+    this.adapterRegistry.register(new TikTokAdapter());
+    this.adapterRegistry.register(new TwitchAdapter());
+    this.adapterRegistry.register(new KickAdapter());
   }
 
   onModuleInit(): void {
@@ -96,22 +88,18 @@ export class EventService
         );
       });
 
-    void this.redisPubSubService
-      .publish(event)
-      .catch((error) => {
-        console.error(
-          "[RedisPubSub] Gagal publish event:",
-          error,
-        );
-      });
-
     if (userId) {
+      void this.redisPubSubService
+        .publish(event, userId)
+        .catch((error) => {
+          console.error(
+            "[RedisPubSub] Gagal publish event:",
+            error,
+          );
+        });
+
       void this.persistenceService
-        .createEvent(
-          event,
-          userId,
-          event.sessionId,
-        )
+        .createEvent(event, userId, event.sessionId)
         .catch((error) => {
           console.error(
             "[EventPersistence] Gagal menyimpan event:",
@@ -132,9 +120,7 @@ export class EventService
   getRecentEvents(
     limit = 20,
   ): StreamEvent[] {
-    return this.eventHistory
-      .slice(-limit)
-      .reverse();
+    return this.eventHistory.slice(-limit).reverse();
   }
 
   getEventCount(): number {

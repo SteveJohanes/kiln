@@ -1,3 +1,4 @@
+
 import {
   Body,
   Controller,
@@ -8,13 +9,21 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import type { Request } from "express";
-import type { Platform } from "@streamdex/types";
+import type {
+  Platform,
+  StreamSessionStatus,
+} from "@streamdex/types";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import type { UserIdentity } from "../auth/auth.types";
 import { StreamSessionService } from "./stream-session.service";
+import { YoutubeLiveChatPollingService } from "../platform-connection/youtube-live-chat-polling.service";
 
 type CreateSessionBody = {
   platforms: Platform[];
+};
+
+type UpdateSessionStatusBody = {
+  status: StreamSessionStatus;
 };
 
 type AuthenticatedRequest = Request & {
@@ -26,6 +35,7 @@ type AuthenticatedRequest = Request & {
 export class StreamSessionController {
   constructor(
     private readonly streamSessionService: StreamSessionService,
+    private readonly youtubeLiveChatPollingService: YoutubeLiveChatPollingService,
   ) {}
 
   @Post()
@@ -69,38 +79,67 @@ export class StreamSessionController {
   }
 
   @Post(":id/start")
-  startSession(
+  async startSession(
     @Param("id") id: string,
     @Req() request: AuthenticatedRequest,
   ) {
-    return this.streamSessionService.startSession(
+    const session = await this.streamSessionService.startSession(
       id,
       request.user.id,
     );
+
+    await this.youtubeLiveChatPollingService.startForSession(
+      request.user.id,
+      session,
+    );
+
+    return session;
   }
 
   @Post(":id/end")
-  endSession(
+  async endSession(
     @Param("id") id: string,
     @Req() request: AuthenticatedRequest,
   ) {
-    return this.streamSessionService.endSession(
+    const session = await this.streamSessionService.endSession(
       id,
       request.user.id,
     );
+
+    this.youtubeLiveChatPollingService.stopForSession(
+      request.user.id,
+      session.id,
+    );
+
+    return session;
   }
 
   @Post(":id/status")
-  updateSessionStatus(
+  async updateSessionStatus(
     @Param("id") id: string,
-    @Body() body: { status: "idle" | "live" | "ended" },
+    @Body() body: UpdateSessionStatusBody,
     @Req() request: AuthenticatedRequest,
   ) {
-    return this.streamSessionService.updateSessionStatus(
-      id,
-      request.user.id,
-      body.status,
-    );
+    const session =
+      await this.streamSessionService.updateSessionStatus(
+        id,
+        request.user.id,
+        body.status,
+      );
+
+    if (session.status === "live") {
+      await this.youtubeLiveChatPollingService.startForSession(
+        request.user.id,
+        session,
+      );
+    } else {
+      this.youtubeLiveChatPollingService.stopForSession(
+        request.user.id,
+        session.id,
+      );
+    }
+
+    return session;
   }
 
   @Post(":id/delete")
@@ -108,12 +147,21 @@ export class StreamSessionController {
     @Param("id") id: string,
     @Req() request: AuthenticatedRequest,
   ) {
-    return {
-      success:
-        await this.streamSessionService.deleteSession(
-          id,
-          request.user.id,
-        ),
-    };
+    const session = await this.streamSessionService.getSession(
+      id,
+      request.user.id,
+    );
+
+    const deleted = await this.streamSessionService.deleteSession(
+      id,
+      request.user.id,
+    );
+
+    this.youtubeLiveChatPollingService.stopForSession(
+      request.user.id,
+      session.id,
+    );
+
+    return { success: deleted };
   }
 }

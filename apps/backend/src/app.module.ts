@@ -1,39 +1,39 @@
-﻿
-import { Module } from "@nestjs/common";
+﻿import { Module } from '@nestjs/common';
 
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
-import { EventService } from "./event/event.service";
-import { EventGateway } from "./event/event.gateway";
-import { EventProcessorService } from "./event/event-processor.service";
-import { StreamEventPersistenceService } from "./event/stream-event-persistence.service";
+import { EventService } from './event/event.service';
+import { EventGateway } from './event/event.gateway';
+import { EventProcessorService } from './event/event-processor.service';
+import { StreamEventPersistenceService } from './event/stream-event-persistence.service';
 
-import { StreamSessionService } from "./stream/stream-session.service";
-import { StreamSessionPersistenceService } from "./stream/stream-session-persistence.service";
-import { StreamSessionController } from "./stream/stream-session.controller";
+import { StreamSessionService } from './stream/stream-session.service';
+import { StreamSessionPersistenceService } from './stream/stream-session-persistence.service';
+import { StreamSessionController } from './stream/stream-session.controller';
 
-import { DashboardService } from "./dashboard/dashboard.service";
-import { DashboardController } from "./dashboard/dashboard.controller";
+import { DashboardService } from './dashboard/dashboard.service';
+import { DashboardController } from './dashboard/dashboard.controller';
 
-import { StreamHistoryService } from "./history/stream-history.service";
-import { StreamHistoryController } from "./history/stream-history.controller";
+import { StreamHistoryService } from './history/stream-history.service';
+import { StreamHistoryController } from './history/stream-history.controller';
 
-import { AuthModule } from "./auth/auth.module";
+import { AuthModule } from './auth/auth.module';
 
-import { PrismaService } from "./prisma/prisma.service";
+import { PrismaService } from './prisma/prisma.service';
 
-import { RedisService } from "./redis/redis.service";
-import { RedisCacheService } from "./redis/redis-cache.service";
-import { RedisQueueService } from "./redis/redis-queue.service";
-import { RedisPubSubService } from "./redis/redis-pubsub.service";
+import { RedisService } from './redis/redis.service';
+import { RedisCacheService } from './redis/redis-cache.service';
+import { RedisQueueService } from './redis/redis-queue.service';
+import { RedisPubSubService } from './redis/redis-pubsub.service';
 
-import { PlatformConnectionService } from "./platform-connection/platform-connection.service";
-import { PlatformConnectionController } from "./platform-connection/platform-connection.controller";
-import { TokenEncryptionService } from "./platform-connection/token-encryption.service";
-import { YoutubeOAuthService } from "./platform-connection/youtube-oauth.service";
-import { YoutubeOAuthController } from "./platform-connection/youtube-oauth.controller";
-import { YoutubeLiveChatService } from "./platform-connection/youtube-live-chat.service";
+import { PlatformConnectionService } from './platform-connection/platform-connection.service';
+import { PlatformConnectionController } from './platform-connection/platform-connection.controller';
+import { TokenEncryptionService } from './platform-connection/token-encryption.service';
+import { YoutubeOAuthService } from './platform-connection/youtube-oauth.service';
+import { YoutubeOAuthController } from './platform-connection/youtube-oauth.controller';
+import { YoutubeLiveChatService } from './platform-connection/youtube-live-chat.service';
+import { YoutubeLiveChatPollingService } from './platform-connection/youtube-live-chat-polling.service';
 
 @Module({
   imports: [AuthModule],
@@ -71,6 +71,7 @@ import { YoutubeLiveChatService } from "./platform-connection/youtube-live-chat.
     TokenEncryptionService,
     YoutubeOAuthService,
     YoutubeLiveChatService,
+    YoutubeLiveChatPollingService,
   ],
 })
 export class AppModule {}

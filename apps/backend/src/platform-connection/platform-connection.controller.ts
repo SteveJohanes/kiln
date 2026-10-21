@@ -10,6 +10,7 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import type { UserIdentity } from "../auth/auth.types";
 import { PlatformConnectionService } from "./platform-connection.service";
 
+
 type AuthenticatedRequest = Request & {
   user: UserIdentity;
 };

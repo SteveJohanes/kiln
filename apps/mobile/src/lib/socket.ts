@@ -1,3 +1,4 @@
+
 import { io, type Socket } from "socket.io-client";
 import { getAccessToken } from "./auth-storage";
 
@@ -8,24 +9,31 @@ export const socket: Socket = io(SOCKET_URL, {
   transports: ["websocket"],
 });
 
+let connecting = false;
+
 export async function connectSocket(): Promise<void> {
-  if (socket.connected) {
+  if (socket.connected || connecting) {
     return;
   }
 
-  const accessToken = await getAccessToken();
+  connecting = true;
 
-  if (!accessToken) {
-    throw new Error(
-      "User belum login. Token WebSocket tidak tersedia.",
-    );
+  try {
+    const accessToken = await getAccessToken();
+
+    if (!accessToken) {
+      // Belum login bukan kondisi fatal. Tunggu sampai pengguna login.
+      return;
+    }
+
+    socket.auth = {
+      token: accessToken,
+    };
+
+    socket.connect();
+  } finally {
+    connecting = false;
   }
-
-  socket.auth = {
-    token: accessToken,
-  };
-
-  socket.connect();
 }
 
 export function disconnectSocket(): void {

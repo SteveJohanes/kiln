@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   OnModuleDestroy,
@@ -20,7 +21,6 @@ import type {
 } from "@streamdex/types";
 import { StreamEventPersistenceService } from "./stream-event-persistence.service";
 import { RedisCacheService } from "../redis/redis-cache.service";
-import { RedisQueueService } from "../redis/redis-queue.service";
 import { RedisPubSubService } from "../redis/redis-pubsub.service";
 
 @Injectable()
@@ -32,10 +32,14 @@ export class EventService
     new PlatformAdapterRegistry();
   private readonly eventHistory: StreamEvent[] = [];
 
+  private pendingOperations = 0;
+  private overloadWarningActive = false;
+
+  private readonly maxPendingOperations = 200;
+
   constructor(
     private readonly persistenceService: StreamEventPersistenceService,
     private readonly redisCacheService: RedisCacheService,
-    private readonly redisQueueService: RedisQueueService,
     private readonly redisPubSubService: RedisPubSubService,
   ) {
     this.adapterRegistry.register(new YouTubeAdapter());
@@ -45,10 +49,6 @@ export class EventService
   }
 
   onModuleInit(): void {
-    this.subscribe((event) => {
-      console.log("[EventBus]", event);
-    });
-
     for (const adapter of this.adapterRegistry.getAll()) {
       adapter.onEvent((event) => {
         this.publish(event);
@@ -64,62 +64,81 @@ export class EventService
     }
   }
 
-  publish(
-    event: StreamEvent,
-    userId?: string,
-  ): void {
+  publish(event: StreamEvent, userId?: string): void {
     this.eventHistory.push(event);
 
-    void this.redisCacheService
-      .addRecentEvent(event)
-      .catch((error) => {
-        console.error(
-          "[RedisCache] Gagal menyimpan event:",
-          error,
-        );
-      });
+    if (this.eventHistory.length > 100) {
+      this.eventHistory.splice(
+        0,
+        this.eventHistory.length - 100,
+      );
+    }
 
-    void this.redisQueueService
-      .enqueueEvent(event)
-      .catch((error) => {
-        console.error(
-          "[RedisQueue] Gagal memasukkan event ke queue:",
-          error,
-        );
-      });
+    this.trackOperation(
+      this.redisCacheService.addRecentEvent(event),
+      "[RedisCache] Gagal menyimpan event:",
+    );
 
     if (userId) {
-      void this.redisPubSubService
-        .publish(event, userId)
-        .catch((error) => {
-          console.error(
-            "[RedisPubSub] Gagal publish event:",
-            error,
-          );
-        });
+      this.trackOperation(
+        this.redisPubSubService.publish(event, userId),
+        "[RedisPubSub] Gagal publish event:",
+      );
 
-      void this.persistenceService
-        .createEvent(event, userId, event.sessionId)
-        .catch((error) => {
-          console.error(
-            "[EventPersistence] Gagal menyimpan event:",
-            error,
-          );
-        });
+      this.trackOperation(
+        this.persistenceService.createEvent(
+          event,
+          userId,
+          event.sessionId,
+        ),
+        "[EventPersistence] Gagal menyimpan event:",
+      );
     }
 
     this.eventBus.publish(event);
   }
 
-  subscribe(
-    handler: EventHandler,
-  ): () => void {
+  private trackOperation(
+    operation: Promise<unknown>,
+    errorMessage: string,
+  ): void {
+    this.pendingOperations += 1;
+
+    if (
+      this.pendingOperations >= this.maxPendingOperations &&
+      !this.overloadWarningActive
+    ) {
+      this.overloadWarningActive = true;
+
+      console.warn(
+        `[EventService] Operasi tertunda mencapai ${this.pendingOperations}. Periksa beban Redis dan PostgreSQL.`,
+      );
+    }
+
+    void operation
+      .catch((error: unknown) => {
+        console.error(errorMessage, error);
+      })
+      .finally(() => {
+        this.pendingOperations = Math.max(
+          0,
+          this.pendingOperations - 1,
+        );
+
+        if (
+          this.pendingOperations <
+          this.maxPendingOperations / 2
+        ) {
+          this.overloadWarningActive = false;
+        }
+      });
+  }
+
+  subscribe(handler: EventHandler): () => void {
     return this.eventBus.subscribe(handler);
   }
 
-  getRecentEvents(
-    limit = 20,
-  ): StreamEvent[] {
+  getRecentEvents(limit = 20): StreamEvent[] {
     return this.eventHistory.slice(-limit).reverse();
   }
 

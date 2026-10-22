@@ -20,10 +20,7 @@ export default function LoginScreen() {
 
   async function handleLogin() {
     if (!email.trim() || !password) {
-      Alert.alert(
-        "Login",
-        "Email dan password harus diisi.",
-      );
+      Alert.alert("Login", "Email dan password harus diisi.");
       return;
     }
 
@@ -33,11 +30,15 @@ export default function LoginScreen() {
       await login(email.trim(), password);
 
       router.replace("/");
-    } catch {
-      Alert.alert(
-        "Login gagal",
-        "Email atau password salah.",
-      );
+    } catch (error) {
+      console.error("Login gagal:", error);
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan yang tidak diketahui.";
+
+      Alert.alert("Login gagal", message);
     } finally {
       setIsSubmitting(false);
     }
@@ -48,9 +49,7 @@ export default function LoginScreen() {
       <View style={styles.card}>
         <Text style={styles.logo}>KILN</Text>
 
-        <Text style={styles.title}>
-          Selamat datang kembali
-        </Text>
+        <Text style={styles.title}>Selamat datang kembali</Text>
 
         <Text style={styles.subtitle}>
           Login untuk mengakses dashboard livestream kamu.
@@ -97,16 +96,12 @@ export default function LoginScreen() {
             {isSubmitting ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.buttonText}>
-                Login
-              </Text>
+              <Text style={styles.buttonText}>Login</Text>
             )}
           </Pressable>
         </View>
 
-        <Text style={styles.demoText}>
-          Demo: demo@kiln.app / kiln123
-        </Text>
+        <Text style={styles.demoText}>Demo: demo@kiln.app / kiln123</Text>
       </View>
     </View>
   );

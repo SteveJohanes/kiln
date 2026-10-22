@@ -54,7 +54,8 @@ export const ModelName = {
   User: 'User',
   PlatformConnection: 'PlatformConnection',
   StreamSession: 'StreamSession',
-  StreamEvent: 'StreamEvent'
+  StreamEvent: 'StreamEvent',
+  StreamOverlayToken: 'StreamOverlayToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -130,6 +131,19 @@ export const StreamEventScalarFieldEnum = {
 } as const
 
 export type StreamEventScalarFieldEnum = (typeof StreamEventScalarFieldEnum)[keyof typeof StreamEventScalarFieldEnum]
+
+
+export const StreamOverlayTokenScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  sessionId: 'sessionId',
+  tokenHash: 'tokenHash',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type StreamOverlayTokenScalarFieldEnum = (typeof StreamOverlayTokenScalarFieldEnum)[keyof typeof StreamOverlayTokenScalarFieldEnum]
 
 
 export const SortOrder = {

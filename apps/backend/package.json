@@ -37,6 +37,7 @@
     "bcrypt": "^6.0.0",
     "googleapis": "^186.0.0",
     "ioredis": "^6.0.0",
+    "obs-websocket-js": "^5.0.8",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.23.0",

@@ -47,29 +47,28 @@ export class StreamHistoryService {
     const events =
       await this.eventPersistenceService.findAllBySessionId(
         sessionId,
+        userId,
         limit,
       );
 
-    return events
-      .filter((event) => event.userId === userId)
-      .map((event) => ({
-        id: event.id,
-        platform: event.platform,
-        type: event.type,
-        username: event.username,
-        ...(event.message !== null && {
-          message: event.message,
-        }),
-        ...(event.amount !== null && {
-          amount: event.amount,
-        }),
-        ...(event.currency !== null && {
-          currency: event.currency,
-        }),
-        timestamp: event.timestamp.getTime(),
-        ...(event.sessionId !== null && {
-          sessionId: event.sessionId,
-        }),
-      }));
+    return events.map((event) => ({
+      id: event.id,
+      platform: event.platform,
+      type: event.type,
+      username: event.username,
+      ...(event.message !== null && {
+        message: event.message,
+      }),
+      ...(event.amount !== null && {
+        amount: event.amount,
+      }),
+      ...(event.currency !== null && {
+        currency: event.currency,
+      }),
+      timestamp: event.timestamp.getTime(),
+      ...(event.sessionId !== null && {
+        sessionId: event.sessionId,
+      }),
+    }));
   }
 }

@@ -37,3 +37,8 @@ export type StreamSession = Prisma.StreamSessionModel
  *
  */
 export type StreamEvent = Prisma.StreamEventModel
+/**
+ * Model StreamOverlayToken
+ *
+ */
+export type StreamOverlayToken = Prisma.StreamOverlayTokenModel

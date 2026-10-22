@@ -177,6 +177,7 @@ export type UserWhereInput = {
   sessions?: Prisma.StreamSessionListRelationFilter
   events?: Prisma.StreamEventListRelationFilter
   platformConnections?: Prisma.PlatformConnectionListRelationFilter
+  overlayTokens?: Prisma.StreamOverlayTokenListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -187,6 +188,7 @@ export type UserOrderByWithRelationInput = {
   sessions?: Prisma.StreamSessionOrderByRelationAggregateInput
   events?: Prisma.StreamEventOrderByRelationAggregateInput
   platformConnections?: Prisma.PlatformConnectionOrderByRelationAggregateInput
+  overlayTokens?: Prisma.StreamOverlayTokenOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -200,6 +202,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   sessions?: Prisma.StreamSessionListRelationFilter
   events?: Prisma.StreamEventListRelationFilter
   platformConnections?: Prisma.PlatformConnectionListRelationFilter
+  overlayTokens?: Prisma.StreamOverlayTokenListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -230,6 +233,7 @@ export type UserCreateInput = {
   sessions?: Prisma.StreamSessionCreateNestedManyWithoutUserInput
   events?: Prisma.StreamEventCreateNestedManyWithoutUserInput
   platformConnections?: Prisma.PlatformConnectionCreateNestedManyWithoutUserInput
+  overlayTokens?: Prisma.StreamOverlayTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -240,6 +244,7 @@ export type UserUncheckedCreateInput = {
   sessions?: Prisma.StreamSessionUncheckedCreateNestedManyWithoutUserInput
   events?: Prisma.StreamEventUncheckedCreateNestedManyWithoutUserInput
   platformConnections?: Prisma.PlatformConnectionUncheckedCreateNestedManyWithoutUserInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -250,6 +255,7 @@ export type UserUpdateInput = {
   sessions?: Prisma.StreamSessionUpdateManyWithoutUserNestedInput
   events?: Prisma.StreamEventUpdateManyWithoutUserNestedInput
   platformConnections?: Prisma.PlatformConnectionUpdateManyWithoutUserNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -260,6 +266,7 @@ export type UserUncheckedUpdateInput = {
   sessions?: Prisma.StreamSessionUncheckedUpdateManyWithoutUserNestedInput
   events?: Prisma.StreamEventUncheckedUpdateManyWithoutUserNestedInput
   platformConnections?: Prisma.PlatformConnectionUncheckedUpdateManyWithoutUserNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -359,6 +366,20 @@ export type UserUpdateOneRequiredWithoutEventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEventsInput, Prisma.UserUpdateWithoutEventsInput>, Prisma.UserUncheckedUpdateWithoutEventsInput>
 }
 
+export type UserCreateNestedOneWithoutOverlayTokensInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOverlayTokensInput, Prisma.UserUncheckedCreateWithoutOverlayTokensInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOverlayTokensInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOverlayTokensNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOverlayTokensInput, Prisma.UserUncheckedCreateWithoutOverlayTokensInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOverlayTokensInput
+  upsert?: Prisma.UserUpsertWithoutOverlayTokensInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOverlayTokensInput, Prisma.UserUpdateWithoutOverlayTokensInput>, Prisma.UserUncheckedUpdateWithoutOverlayTokensInput>
+}
+
 export type UserCreateWithoutPlatformConnectionsInput = {
   id: string
   email: string
@@ -366,6 +387,7 @@ export type UserCreateWithoutPlatformConnectionsInput = {
   updatedAt?: Date | string
   sessions?: Prisma.StreamSessionCreateNestedManyWithoutUserInput
   events?: Prisma.StreamEventCreateNestedManyWithoutUserInput
+  overlayTokens?: Prisma.StreamOverlayTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPlatformConnectionsInput = {
@@ -375,6 +397,7 @@ export type UserUncheckedCreateWithoutPlatformConnectionsInput = {
   updatedAt?: Date | string
   sessions?: Prisma.StreamSessionUncheckedCreateNestedManyWithoutUserInput
   events?: Prisma.StreamEventUncheckedCreateNestedManyWithoutUserInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -400,6 +423,7 @@ export type UserUpdateWithoutPlatformConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.StreamSessionUpdateManyWithoutUserNestedInput
   events?: Prisma.StreamEventUpdateManyWithoutUserNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlatformConnectionsInput = {
@@ -409,6 +433,7 @@ export type UserUncheckedUpdateWithoutPlatformConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.StreamSessionUncheckedUpdateManyWithoutUserNestedInput
   events?: Prisma.StreamEventUncheckedUpdateManyWithoutUserNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -418,6 +443,7 @@ export type UserCreateWithoutSessionsInput = {
   updatedAt?: Date | string
   events?: Prisma.StreamEventCreateNestedManyWithoutUserInput
   platformConnections?: Prisma.PlatformConnectionCreateNestedManyWithoutUserInput
+  overlayTokens?: Prisma.StreamOverlayTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -427,6 +453,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   updatedAt?: Date | string
   events?: Prisma.StreamEventUncheckedCreateNestedManyWithoutUserInput
   platformConnections?: Prisma.PlatformConnectionUncheckedCreateNestedManyWithoutUserInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -452,6 +479,7 @@ export type UserUpdateWithoutSessionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.StreamEventUpdateManyWithoutUserNestedInput
   platformConnections?: Prisma.PlatformConnectionUpdateManyWithoutUserNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -461,6 +489,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.StreamEventUncheckedUpdateManyWithoutUserNestedInput
   platformConnections?: Prisma.PlatformConnectionUncheckedUpdateManyWithoutUserNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEventsInput = {
@@ -470,6 +499,7 @@ export type UserCreateWithoutEventsInput = {
   updatedAt?: Date | string
   sessions?: Prisma.StreamSessionCreateNestedManyWithoutUserInput
   platformConnections?: Prisma.PlatformConnectionCreateNestedManyWithoutUserInput
+  overlayTokens?: Prisma.StreamOverlayTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEventsInput = {
@@ -479,6 +509,7 @@ export type UserUncheckedCreateWithoutEventsInput = {
   updatedAt?: Date | string
   sessions?: Prisma.StreamSessionUncheckedCreateNestedManyWithoutUserInput
   platformConnections?: Prisma.PlatformConnectionUncheckedCreateNestedManyWithoutUserInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEventsInput = {
@@ -504,6 +535,7 @@ export type UserUpdateWithoutEventsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.StreamSessionUpdateManyWithoutUserNestedInput
   platformConnections?: Prisma.PlatformConnectionUpdateManyWithoutUserNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEventsInput = {
@@ -512,6 +544,63 @@ export type UserUncheckedUpdateWithoutEventsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.StreamSessionUncheckedUpdateManyWithoutUserNestedInput
+  platformConnections?: Prisma.PlatformConnectionUncheckedUpdateManyWithoutUserNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutOverlayTokensInput = {
+  id: string
+  email: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.StreamSessionCreateNestedManyWithoutUserInput
+  events?: Prisma.StreamEventCreateNestedManyWithoutUserInput
+  platformConnections?: Prisma.PlatformConnectionCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutOverlayTokensInput = {
+  id: string
+  email: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.StreamSessionUncheckedCreateNestedManyWithoutUserInput
+  events?: Prisma.StreamEventUncheckedCreateNestedManyWithoutUserInput
+  platformConnections?: Prisma.PlatformConnectionUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutOverlayTokensInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOverlayTokensInput, Prisma.UserUncheckedCreateWithoutOverlayTokensInput>
+}
+
+export type UserUpsertWithoutOverlayTokensInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOverlayTokensInput, Prisma.UserUncheckedUpdateWithoutOverlayTokensInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOverlayTokensInput, Prisma.UserUncheckedCreateWithoutOverlayTokensInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOverlayTokensInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOverlayTokensInput, Prisma.UserUncheckedUpdateWithoutOverlayTokensInput>
+}
+
+export type UserUpdateWithoutOverlayTokensInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.StreamSessionUpdateManyWithoutUserNestedInput
+  events?: Prisma.StreamEventUpdateManyWithoutUserNestedInput
+  platformConnections?: Prisma.PlatformConnectionUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOverlayTokensInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.StreamSessionUncheckedUpdateManyWithoutUserNestedInput
+  events?: Prisma.StreamEventUncheckedUpdateManyWithoutUserNestedInput
   platformConnections?: Prisma.PlatformConnectionUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -524,12 +613,14 @@ export type UserCountOutputType = {
   sessions: number
   events: number
   platformConnections: number
+  overlayTokens: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   events?: boolean | UserCountOutputTypeCountEventsArgs
   platformConnections?: boolean | UserCountOutputTypeCountPlatformConnectionsArgs
+  overlayTokens?: boolean | UserCountOutputTypeCountOverlayTokensArgs
 }
 
 /**
@@ -563,6 +654,13 @@ export type UserCountOutputTypeCountPlatformConnectionsArgs<ExtArgs extends runt
   where?: Prisma.PlatformConnectionWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOverlayTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StreamOverlayTokenWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -572,6 +670,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   events?: boolean | Prisma.User$eventsArgs<ExtArgs>
   platformConnections?: boolean | Prisma.User$platformConnectionsArgs<ExtArgs>
+  overlayTokens?: boolean | Prisma.User$overlayTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -601,6 +700,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   events?: boolean | Prisma.User$eventsArgs<ExtArgs>
   platformConnections?: boolean | Prisma.User$platformConnectionsArgs<ExtArgs>
+  overlayTokens?: boolean | Prisma.User$overlayTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -612,6 +712,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     sessions: Prisma.$StreamSessionPayload<ExtArgs>[]
     events: Prisma.$StreamEventPayload<ExtArgs>[]
     platformConnections: Prisma.$PlatformConnectionPayload<ExtArgs>[]
+    overlayTokens: Prisma.$StreamOverlayTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1015,6 +1116,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StreamSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   events<T extends Prisma.User$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StreamEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   platformConnections<T extends Prisma.User$platformConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PlatformConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  overlayTokens<T extends Prisma.User$overlayTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$overlayTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StreamOverlayTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1510,6 +1612,30 @@ export type User$platformConnectionsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.PlatformConnectionScalarFieldEnum | Prisma.PlatformConnectionScalarFieldEnum[]
+}
+
+/**
+ * User.overlayTokens
+ */
+export type User$overlayTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StreamOverlayToken
+   */
+  select?: Prisma.StreamOverlayTokenSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StreamOverlayToken
+   */
+  omit?: Prisma.StreamOverlayTokenOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StreamOverlayTokenInclude<ExtArgs> | null
+  where?: Prisma.StreamOverlayTokenWhereInput
+  orderBy?: Prisma.StreamOverlayTokenOrderByWithRelationInput | Prisma.StreamOverlayTokenOrderByWithRelationInput[]
+  cursor?: Prisma.StreamOverlayTokenWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StreamOverlayTokenScalarFieldEnum | Prisma.StreamOverlayTokenScalarFieldEnum[]
 }
 
 /**

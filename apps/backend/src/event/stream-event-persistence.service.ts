@@ -56,22 +56,32 @@ export class StreamEventPersistenceService {
       orderBy: {
         timestamp: "desc",
       },
-      take: limit,
+      take: this.normalizeLimit(limit),
     });
   }
 
   async findAllBySessionId(
     sessionId: string,
+    userId: string,
     limit = 100,
   ) {
     return this.prisma.streamEvent.findMany({
       where: {
         sessionId,
+        userId,
       },
       orderBy: {
         timestamp: "desc",
       },
-      take: limit,
+      take: this.normalizeLimit(limit),
     });
+  }
+
+  private normalizeLimit(limit: number): number {
+    if (!Number.isFinite(limit)) {
+      return 100;
+    }
+
+    return Math.min(500, Math.max(1, Math.trunc(limit)));
   }
 }

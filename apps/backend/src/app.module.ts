@@ -5,7 +5,6 @@ import { AppService } from './app.service';
 
 import { EventService } from './event/event.service';
 import { EventGateway } from './event/event.gateway';
-import { EventProcessorService } from './event/event-processor.service';
 import { StreamEventPersistenceService } from './event/stream-event-persistence.service';
 
 import { StreamSessionService } from './stream/stream-session.service';
@@ -24,7 +23,6 @@ import { PrismaService } from './prisma/prisma.service';
 
 import { RedisService } from './redis/redis.service';
 import { RedisCacheService } from './redis/redis-cache.service';
-import { RedisQueueService } from './redis/redis-queue.service';
 import { RedisPubSubService } from './redis/redis-pubsub.service';
 
 import { PlatformConnectionService } from './platform-connection/platform-connection.service';
@@ -35,8 +33,14 @@ import { YoutubeOAuthController } from './platform-connection/youtube-oauth.cont
 import { YoutubeLiveChatService } from './platform-connection/youtube-live-chat.service';
 import { YoutubeLiveChatPollingService } from './platform-connection/youtube-live-chat-polling.service';
 
+import { ObsModule } from './obs/obs.module';
+
+import { OverlayService } from './overlay/overlay.service';
+import { OverlayController } from './overlay/overlay.controller';
+import { OverlayGateway } from './overlay/overlay.gateway';
+
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, ObsModule],
 
   controllers: [
     AppController,
@@ -45,6 +49,7 @@ import { YoutubeLiveChatPollingService } from './platform-connection/youtube-liv
     StreamHistoryController,
     PlatformConnectionController,
     YoutubeOAuthController,
+    OverlayController,
   ],
 
   providers: [
@@ -53,12 +58,10 @@ import { YoutubeLiveChatPollingService } from './platform-connection/youtube-liv
 
     RedisService,
     RedisCacheService,
-    RedisQueueService,
     RedisPubSubService,
 
     EventService,
     EventGateway,
-    EventProcessorService,
     StreamEventPersistenceService,
 
     StreamSessionService,
@@ -72,6 +75,9 @@ import { YoutubeLiveChatPollingService } from './platform-connection/youtube-liv
     YoutubeOAuthService,
     YoutubeLiveChatService,
     YoutubeLiveChatPollingService,
+
+    OverlayService,
+    OverlayGateway,
   ],
 })
 export class AppModule {}

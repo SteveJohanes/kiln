@@ -1,9 +1,10 @@
-
 import {
   Injectable,
   OnModuleDestroy,
+  OnModuleInit,
 } from "@nestjs/common";
 import type { StreamSession } from "@streamdex/types";
+import { StreamSessionService } from "../stream/stream-session.service";
 import { PlatformConnectionService } from "./platform-connection.service";
 import { YoutubeLiveChatService } from "./youtube-live-chat.service";
 
@@ -14,29 +15,85 @@ type PollingTask = {
   timer?: ReturnType<typeof setTimeout>;
   stopped: boolean;
   pageToken?: string;
+  waitingForLive?: boolean;
 };
 
 const DEFAULT_POLL_INTERVAL_MS = 5_000;
 const MIN_POLL_INTERVAL_MS = 1_000;
 const MAX_POLL_INTERVAL_MS = 30_000;
 
+const NO_ACTIVE_LIVE_MESSAGE =
+  "Tidak ditemukan siaran YouTube aktif dengan Live Chat";
+
 @Injectable()
 export class YoutubeLiveChatPollingService
-  implements OnModuleDestroy
+  implements OnModuleInit, OnModuleDestroy
 {
   private readonly tasks = new Map<string, PollingTask>();
 
   constructor(
+    private readonly streamSessionService: StreamSessionService,
     private readonly platformConnectionService: PlatformConnectionService,
     private readonly youtubeLiveChatService: YoutubeLiveChatService,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    console.log(
+      "[YouTube Polling] Memeriksa sesi aktif untuk pemulihan...",
+    );
+
+    try {
+      const sessions =
+        await this.streamSessionService.getAllActiveSessions();
+
+      const youtubeSessions = sessions.filter(
+        (session) =>
+          session.status === "live" &&
+          session.platforms.includes("youtube"),
+      );
+
+      if (youtubeSessions.length === 0) {
+        console.log(
+          "[YouTube Polling] Tidak ada sesi YouTube aktif untuk dipulihkan.",
+        );
+        return;
+      }
+
+      for (const session of youtubeSessions) {
+        try {
+          await this.startForSession(session.userId, session);
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+
+          console.error(
+            `[YouTube Polling] Gagal memulihkan sesi ${session.id}: ${message}`,
+          );
+        }
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : String(error);
+
+      console.error(
+        `[YouTube Polling] Gagal memeriksa sesi aktif: ${message}`,
+      );
+    }
+  }
 
   async startForSession(
     userId: string,
     session: StreamSession,
   ): Promise<void> {
+    if (session.userId !== userId) {
+      console.warn(
+        `[YouTube Polling] Sesi ${session.id} tidak cocok dengan pemilik.`,
+      );
+      this.stopForUser(userId);
+      return;
+    }
+
     if (
-      session.userId !== userId ||
       session.status !== "live" ||
       !session.platforms.includes("youtube")
     ) {
@@ -52,6 +109,12 @@ export class YoutubeLiveChatPollingService
         connection.platform === "youtube" &&
         connection.status === "connected",
     );
+
+    if (youtubeConnections.length === 0) {
+      console.warn(
+        "[YouTube Polling] Tidak ada koneksi YouTube aktif.",
+      );
+    }
 
     const activeConnectionIds = new Set(
       youtubeConnections.map((connection) => connection.id),
@@ -85,6 +148,11 @@ export class YoutubeLiveChatPollingService
       };
 
       this.tasks.set(key, task);
+
+      console.log(
+        `[YouTube Polling] Dimulai untuk sesi ${session.id}.`,
+      );
+
       this.scheduleNextPoll(key, task, 0);
     }
   }
@@ -146,16 +214,23 @@ export class YoutubeLiveChatPollingService
           task.pageToken,
         );
 
-      if (
-        task.stopped ||
-        this.tasks.get(key) !== task
-      ) {
+      if (task.stopped || this.tasks.get(key) !== task) {
         return;
       }
 
       if (result.sessionId !== task.sessionId) {
+        console.warn(
+          "[YouTube Polling] Sesi berubah. Task dihentikan.",
+        );
         this.stopTask(key);
         return;
+      }
+
+      if (task.waitingForLive) {
+        console.log(
+          "[YouTube Polling] Siaran aktif terdeteksi kembali.",
+        );
+        task.waitingForLive = false;
       }
 
       task.pageToken = result.nextPageToken ?? undefined;
@@ -168,10 +243,7 @@ export class YoutubeLiveChatPollingService
       ) {
         nextDelayMs = Math.min(
           MAX_POLL_INTERVAL_MS,
-          Math.max(
-            MIN_POLL_INTERVAL_MS,
-            requestedInterval,
-          ),
+          Math.max(MIN_POLL_INTERVAL_MS, requestedInterval),
         );
       }
     } catch (error) {
@@ -180,18 +252,23 @@ export class YoutubeLiveChatPollingService
       }
 
       const message =
-        error instanceof Error
-          ? error.message
-          : String(error);
+        error instanceof Error ? error.message : String(error);
 
-      console.error(
-        `[YouTube Polling] Gagal memproses koneksi ${task.connectionId}: ${message}`,
-      );
+      if (message.includes(NO_ACTIVE_LIVE_MESSAGE)) {
+        if (!task.waitingForLive) {
+          console.log(
+            "[YouTube Polling] Belum ada siaran YouTube aktif. Pemeriksaan dilanjutkan setiap 30 detik.",
+          );
+        }
 
-      // Jangan mengulang page token lama setelah kegagalan API.
-      // Poll berikutnya dimulai tanpa token agar dapat pulih
-      // dari token pagination yang kedaluwarsa atau tidak valid.
-      task.pageToken = undefined;
+        task.waitingForLive = true;
+        task.pageToken = undefined;
+        nextDelayMs = MAX_POLL_INTERVAL_MS;
+      } else {
+        console.error(
+          `[YouTube Polling] Gagal: ${message}`,
+        );
+      }
     }
 
     this.scheduleNextPoll(key, task, nextDelayMs);
@@ -211,6 +288,10 @@ export class YoutubeLiveChatPollingService
     }
 
     this.tasks.delete(key);
+
+    console.log(
+      `[YouTube Polling] Dihentikan untuk sesi ${task.sessionId}.`,
+    );
   }
 
   private getTaskKey(

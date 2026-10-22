@@ -1,3 +1,4 @@
+
 import { Injectable } from "@nestjs/common";
 import type {
   Platform,
@@ -26,6 +27,17 @@ export class StreamSessionPersistenceService {
       },
       orderBy: {
         createdAt: "desc",
+      },
+    });
+  }
+
+  async findAllActive() {
+    return this.prisma.streamSession.findMany({
+      where: {
+        status: "live",
+      },
+      orderBy: {
+        startedAt: "desc",
       },
     });
   }

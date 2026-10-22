@@ -204,6 +204,7 @@ export type StreamSessionWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"StreamSession"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   events?: Prisma.StreamEventListRelationFilter
+  overlayTokens?: Prisma.StreamOverlayTokenListRelationFilter
 }
 
 export type StreamSessionOrderByWithRelationInput = {
@@ -217,6 +218,7 @@ export type StreamSessionOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   events?: Prisma.StreamEventOrderByRelationAggregateInput
+  overlayTokens?: Prisma.StreamOverlayTokenOrderByRelationAggregateInput
 }
 
 export type StreamSessionWhereUniqueInput = Prisma.AtLeast<{
@@ -233,6 +235,7 @@ export type StreamSessionWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"StreamSession"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   events?: Prisma.StreamEventListRelationFilter
+  overlayTokens?: Prisma.StreamOverlayTokenListRelationFilter
 }, "id">
 
 export type StreamSessionOrderByWithAggregationInput = {
@@ -273,6 +276,7 @@ export type StreamSessionCreateInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutSessionsInput
   events?: Prisma.StreamEventCreateNestedManyWithoutSessionInput
+  overlayTokens?: Prisma.StreamOverlayTokenCreateNestedManyWithoutSessionInput
 }
 
 export type StreamSessionUncheckedCreateInput = {
@@ -285,6 +289,7 @@ export type StreamSessionUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   events?: Prisma.StreamEventUncheckedCreateNestedManyWithoutSessionInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedCreateNestedManyWithoutSessionInput
 }
 
 export type StreamSessionUpdateInput = {
@@ -297,6 +302,7 @@ export type StreamSessionUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutSessionsNestedInput
   events?: Prisma.StreamEventUpdateManyWithoutSessionNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUpdateManyWithoutSessionNestedInput
 }
 
 export type StreamSessionUncheckedUpdateInput = {
@@ -309,6 +315,7 @@ export type StreamSessionUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.StreamEventUncheckedUpdateManyWithoutSessionNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedUpdateManyWithoutSessionNestedInput
 }
 
 export type StreamSessionCreateManyInput = {
@@ -397,6 +404,11 @@ export type StreamSessionNullableScalarRelationFilter = {
   isNot?: Prisma.StreamSessionWhereInput | null
 }
 
+export type StreamSessionScalarRelationFilter = {
+  is?: Prisma.StreamSessionWhereInput
+  isNot?: Prisma.StreamSessionWhereInput
+}
+
 export type StreamSessionCreateNestedManyWithoutUserInput = {
   create?: Prisma.XOR<Prisma.StreamSessionCreateWithoutUserInput, Prisma.StreamSessionUncheckedCreateWithoutUserInput> | Prisma.StreamSessionCreateWithoutUserInput[] | Prisma.StreamSessionUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.StreamSessionCreateOrConnectWithoutUserInput | Prisma.StreamSessionCreateOrConnectWithoutUserInput[]
@@ -468,6 +480,20 @@ export type StreamSessionUpdateOneWithoutEventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.StreamSessionUpdateToOneWithWhereWithoutEventsInput, Prisma.StreamSessionUpdateWithoutEventsInput>, Prisma.StreamSessionUncheckedUpdateWithoutEventsInput>
 }
 
+export type StreamSessionCreateNestedOneWithoutOverlayTokensInput = {
+  create?: Prisma.XOR<Prisma.StreamSessionCreateWithoutOverlayTokensInput, Prisma.StreamSessionUncheckedCreateWithoutOverlayTokensInput>
+  connectOrCreate?: Prisma.StreamSessionCreateOrConnectWithoutOverlayTokensInput
+  connect?: Prisma.StreamSessionWhereUniqueInput
+}
+
+export type StreamSessionUpdateOneRequiredWithoutOverlayTokensNestedInput = {
+  create?: Prisma.XOR<Prisma.StreamSessionCreateWithoutOverlayTokensInput, Prisma.StreamSessionUncheckedCreateWithoutOverlayTokensInput>
+  connectOrCreate?: Prisma.StreamSessionCreateOrConnectWithoutOverlayTokensInput
+  upsert?: Prisma.StreamSessionUpsertWithoutOverlayTokensInput
+  connect?: Prisma.StreamSessionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.StreamSessionUpdateToOneWithWhereWithoutOverlayTokensInput, Prisma.StreamSessionUpdateWithoutOverlayTokensInput>, Prisma.StreamSessionUncheckedUpdateWithoutOverlayTokensInput>
+}
+
 export type StreamSessionCreateWithoutUserInput = {
   id: string
   status: $Enums.StreamSessionStatus
@@ -477,6 +503,7 @@ export type StreamSessionCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   events?: Prisma.StreamEventCreateNestedManyWithoutSessionInput
+  overlayTokens?: Prisma.StreamOverlayTokenCreateNestedManyWithoutSessionInput
 }
 
 export type StreamSessionUncheckedCreateWithoutUserInput = {
@@ -488,6 +515,7 @@ export type StreamSessionUncheckedCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   events?: Prisma.StreamEventUncheckedCreateNestedManyWithoutSessionInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedCreateNestedManyWithoutSessionInput
 }
 
 export type StreamSessionCreateOrConnectWithoutUserInput = {
@@ -539,6 +567,7 @@ export type StreamSessionCreateWithoutEventsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutSessionsInput
+  overlayTokens?: Prisma.StreamOverlayTokenCreateNestedManyWithoutSessionInput
 }
 
 export type StreamSessionUncheckedCreateWithoutEventsInput = {
@@ -550,6 +579,7 @@ export type StreamSessionUncheckedCreateWithoutEventsInput = {
   endedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedCreateNestedManyWithoutSessionInput
 }
 
 export type StreamSessionCreateOrConnectWithoutEventsInput = {
@@ -577,6 +607,7 @@ export type StreamSessionUpdateWithoutEventsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutSessionsNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUpdateManyWithoutSessionNestedInput
 }
 
 export type StreamSessionUncheckedUpdateWithoutEventsInput = {
@@ -588,6 +619,71 @@ export type StreamSessionUncheckedUpdateWithoutEventsInput = {
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedUpdateManyWithoutSessionNestedInput
+}
+
+export type StreamSessionCreateWithoutOverlayTokensInput = {
+  id: string
+  status: $Enums.StreamSessionStatus
+  platforms?: Prisma.StreamSessionCreateplatformsInput | $Enums.Platform[]
+  startedAt?: Date | string | null
+  endedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutSessionsInput
+  events?: Prisma.StreamEventCreateNestedManyWithoutSessionInput
+}
+
+export type StreamSessionUncheckedCreateWithoutOverlayTokensInput = {
+  id: string
+  userId: string
+  status: $Enums.StreamSessionStatus
+  platforms?: Prisma.StreamSessionCreateplatformsInput | $Enums.Platform[]
+  startedAt?: Date | string | null
+  endedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  events?: Prisma.StreamEventUncheckedCreateNestedManyWithoutSessionInput
+}
+
+export type StreamSessionCreateOrConnectWithoutOverlayTokensInput = {
+  where: Prisma.StreamSessionWhereUniqueInput
+  create: Prisma.XOR<Prisma.StreamSessionCreateWithoutOverlayTokensInput, Prisma.StreamSessionUncheckedCreateWithoutOverlayTokensInput>
+}
+
+export type StreamSessionUpsertWithoutOverlayTokensInput = {
+  update: Prisma.XOR<Prisma.StreamSessionUpdateWithoutOverlayTokensInput, Prisma.StreamSessionUncheckedUpdateWithoutOverlayTokensInput>
+  create: Prisma.XOR<Prisma.StreamSessionCreateWithoutOverlayTokensInput, Prisma.StreamSessionUncheckedCreateWithoutOverlayTokensInput>
+  where?: Prisma.StreamSessionWhereInput
+}
+
+export type StreamSessionUpdateToOneWithWhereWithoutOverlayTokensInput = {
+  where?: Prisma.StreamSessionWhereInput
+  data: Prisma.XOR<Prisma.StreamSessionUpdateWithoutOverlayTokensInput, Prisma.StreamSessionUncheckedUpdateWithoutOverlayTokensInput>
+}
+
+export type StreamSessionUpdateWithoutOverlayTokensInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStreamSessionStatusFieldUpdateOperationsInput | $Enums.StreamSessionStatus
+  platforms?: Prisma.StreamSessionUpdateplatformsInput | $Enums.Platform[]
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutSessionsNestedInput
+  events?: Prisma.StreamEventUpdateManyWithoutSessionNestedInput
+}
+
+export type StreamSessionUncheckedUpdateWithoutOverlayTokensInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumStreamSessionStatusFieldUpdateOperationsInput | $Enums.StreamSessionStatus
+  platforms?: Prisma.StreamSessionUpdateplatformsInput | $Enums.Platform[]
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  events?: Prisma.StreamEventUncheckedUpdateManyWithoutSessionNestedInput
 }
 
 export type StreamSessionCreateManyUserInput = {
@@ -609,6 +705,7 @@ export type StreamSessionUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.StreamEventUpdateManyWithoutSessionNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUpdateManyWithoutSessionNestedInput
 }
 
 export type StreamSessionUncheckedUpdateWithoutUserInput = {
@@ -620,6 +717,7 @@ export type StreamSessionUncheckedUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.StreamEventUncheckedUpdateManyWithoutSessionNestedInput
+  overlayTokens?: Prisma.StreamOverlayTokenUncheckedUpdateManyWithoutSessionNestedInput
 }
 
 export type StreamSessionUncheckedUpdateManyWithoutUserInput = {
@@ -639,10 +737,12 @@ export type StreamSessionUncheckedUpdateManyWithoutUserInput = {
 
 export type StreamSessionCountOutputType = {
   events: number
+  overlayTokens: number
 }
 
 export type StreamSessionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   events?: boolean | StreamSessionCountOutputTypeCountEventsArgs
+  overlayTokens?: boolean | StreamSessionCountOutputTypeCountOverlayTokensArgs
 }
 
 /**
@@ -662,6 +762,13 @@ export type StreamSessionCountOutputTypeCountEventsArgs<ExtArgs extends runtime.
   where?: Prisma.StreamEventWhereInput
 }
 
+/**
+ * StreamSessionCountOutputType without action
+ */
+export type StreamSessionCountOutputTypeCountOverlayTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StreamOverlayTokenWhereInput
+}
+
 
 export type StreamSessionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -674,6 +781,7 @@ export type StreamSessionSelect<ExtArgs extends runtime.Types.Extensions.Interna
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   events?: boolean | Prisma.StreamSession$eventsArgs<ExtArgs>
+  overlayTokens?: boolean | Prisma.StreamSession$overlayTokensArgs<ExtArgs>
   _count?: boolean | Prisma.StreamSessionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["streamSession"]>
 
@@ -716,6 +824,7 @@ export type StreamSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalA
 export type StreamSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   events?: boolean | Prisma.StreamSession$eventsArgs<ExtArgs>
+  overlayTokens?: boolean | Prisma.StreamSession$overlayTokensArgs<ExtArgs>
   _count?: boolean | Prisma.StreamSessionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type StreamSessionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -730,6 +839,7 @@ export type $StreamSessionPayload<ExtArgs extends runtime.Types.Extensions.Inter
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
     events: Prisma.$StreamEventPayload<ExtArgs>[]
+    overlayTokens: Prisma.$StreamOverlayTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1136,6 +1246,7 @@ export interface Prisma__StreamSessionClient<T, Null = never, ExtArgs extends ru
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   events<T extends Prisma.StreamSession$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StreamSession$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StreamEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  overlayTokens<T extends Prisma.StreamSession$overlayTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StreamSession$overlayTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StreamOverlayTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1595,6 +1706,30 @@ export type StreamSession$eventsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.StreamEventScalarFieldEnum | Prisma.StreamEventScalarFieldEnum[]
+}
+
+/**
+ * StreamSession.overlayTokens
+ */
+export type StreamSession$overlayTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StreamOverlayToken
+   */
+  select?: Prisma.StreamOverlayTokenSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StreamOverlayToken
+   */
+  omit?: Prisma.StreamOverlayTokenOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StreamOverlayTokenInclude<ExtArgs> | null
+  where?: Prisma.StreamOverlayTokenWhereInput
+  orderBy?: Prisma.StreamOverlayTokenOrderByWithRelationInput | Prisma.StreamOverlayTokenOrderByWithRelationInput[]
+  cursor?: Prisma.StreamOverlayTokenWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StreamOverlayTokenScalarFieldEnum | Prisma.StreamOverlayTokenScalarFieldEnum[]
 }
 
 /**

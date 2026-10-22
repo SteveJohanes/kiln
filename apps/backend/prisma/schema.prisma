@@ -45,21 +45,22 @@ model User {
   sessions            StreamSession[]
   events              StreamEvent[]
   platformConnections PlatformConnection[]
+  overlayTokens        StreamOverlayToken[]
 }
 
 model PlatformConnection {
-  id                   String                   @id @default(cuid())
-  userId               String
-  platform             Platform
-  platformUserId       String
-  platformUsername     String?
-  accessTokenEncrypted String                   @db.Text
-  refreshTokenEncrypted String?                 @db.Text
-  tokenExpiresAt       DateTime?
-  scopes               String[]                 @default([])
-  status               PlatformConnectionStatus @default(connected)
-  createdAt            DateTime                 @default(now())
-  updatedAt            DateTime                 @updatedAt
+  id                    String                   @id @default(cuid())
+  userId                String
+  platform              Platform
+  platformUserId        String
+  platformUsername      String?
+  accessTokenEncrypted  String                   @db.Text
+  refreshTokenEncrypted String?                  @db.Text
+  tokenExpiresAt        DateTime?
+  scopes                String[]                 @default([])
+  status                PlatformConnectionStatus @default(connected)
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -78,14 +79,15 @@ model StreamSession {
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
 
-  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  events StreamEvent[]
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events       StreamEvent[]
+  overlayTokens StreamOverlayToken[]
 
   @@index([userId])
 }
 
 model StreamEvent {
-  id        String           @id
+  id        String          @id
   userId    String
   sessionId String?
   platform  Platform
@@ -95,7 +97,7 @@ model StreamEvent {
   amount    Float?
   currency  String?
   timestamp DateTime
-  createdAt DateTime         @default(now())
+  createdAt DateTime        @default(now())
 
   user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   session StreamSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
@@ -103,4 +105,21 @@ model StreamEvent {
   @@index([userId])
   @@index([sessionId])
   @@index([timestamp])
+}
+
+model StreamOverlayToken {
+  id        String    @id @default(cuid())
+  userId    String
+  sessionId String
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+  expiresAt DateTime?
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session StreamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([userId, sessionId])
 }

@@ -400,7 +400,8 @@ export const ModelName = {
   User: 'User',
   PlatformConnection: 'PlatformConnection',
   StreamSession: 'StreamSession',
-  StreamEvent: 'StreamEvent'
+  StreamEvent: 'StreamEvent',
+  StreamOverlayToken: 'StreamOverlayToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "platformConnection" | "streamSession" | "streamEvent"
+    modelProps: "user" | "platformConnection" | "streamSession" | "streamEvent" | "streamOverlayToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -716,6 +717,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    StreamOverlayToken: {
+      payload: Prisma.$StreamOverlayTokenPayload<ExtArgs>
+      fields: Prisma.StreamOverlayTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StreamOverlayTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StreamOverlayTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.StreamOverlayTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StreamOverlayTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload>
+        }
+        findMany: {
+          args: Prisma.StreamOverlayTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload>[]
+        }
+        create: {
+          args: Prisma.StreamOverlayTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload>
+        }
+        createMany: {
+          args: Prisma.StreamOverlayTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StreamOverlayTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.StreamOverlayTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload>
+        }
+        update: {
+          args: Prisma.StreamOverlayTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.StreamOverlayTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StreamOverlayTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StreamOverlayTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.StreamOverlayTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StreamOverlayTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.StreamOverlayTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStreamOverlayToken>
+        }
+        groupBy: {
+          args: Prisma.StreamOverlayTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StreamOverlayTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StreamOverlayTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StreamOverlayTokenCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -812,6 +887,19 @@ export const StreamEventScalarFieldEnum = {
 } as const
 
 export type StreamEventScalarFieldEnum = (typeof StreamEventScalarFieldEnum)[keyof typeof StreamEventScalarFieldEnum]
+
+
+export const StreamOverlayTokenScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  sessionId: 'sessionId',
+  tokenHash: 'tokenHash',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type StreamOverlayTokenScalarFieldEnum = (typeof StreamOverlayTokenScalarFieldEnum)[keyof typeof StreamOverlayTokenScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1110,6 +1198,7 @@ export type GlobalOmitConfig = {
   platformConnection?: Prisma.PlatformConnectionOmit
   streamSession?: Prisma.StreamSessionOmit
   streamEvent?: Prisma.StreamEventOmit
+  streamOverlayToken?: Prisma.StreamOverlayTokenOmit
 }
 
 /* Types for Logging */
